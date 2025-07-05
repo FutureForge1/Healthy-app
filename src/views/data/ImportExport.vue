@@ -305,9 +305,9 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="导入选项">
-          <el-checkbox v-model="importForm.skipFirstRow">跳过第一行（标题行）</el-checkbox>
-          <el-checkbox v-model="importForm.validateData">数据验证</el-checkbox>
-          <el-checkbox v-model="importForm.overwriteExisting">覆盖已存在数据</el-checkbox>
+          <el-checkbox v-model="importForm.skipFirstRow" :true-value="true" :false-value="false">跳过第一行（标题行）</el-checkbox>
+          <el-checkbox v-model="importForm.validateData" :true-value="true" :false-value="false">数据验证</el-checkbox>
+          <el-checkbox v-model="importForm.overwriteExisting" :true-value="true" :false-value="false">覆盖已存在数据</el-checkbox>
         </el-form-item>
       </el-form>
       
@@ -344,9 +344,9 @@
         </el-form-item>
         <el-form-item label="导出格式">
           <el-radio-group v-model="exportForm.format">
-            <el-radio label="xlsx">Excel (.xlsx)</el-radio>
-            <el-radio label="csv">CSV (.csv)</el-radio>
-            <el-radio label="json">JSON (.json)</el-radio>
+            <el-radio value="xlsx">Excel (.xlsx)</el-radio>
+            <el-radio value="csv">CSV (.csv)</el-radio>
+            <el-radio value="json">JSON (.json)</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="时间范围">
@@ -367,8 +367,8 @@
           />
         </el-form-item>
         <el-form-item label="导出选项">
-          <el-checkbox v-model="exportForm.includeHeaders">包含标题行</el-checkbox>
-          <el-checkbox v-model="exportForm.compressFile">压缩文件</el-checkbox>
+          <el-checkbox v-model="exportForm.includeHeaders" :true-value="true" :false-value="false">包含标题行</el-checkbox>
+          <el-checkbox v-model="exportForm.compressFile" :true-value="true" :false-value="false">压缩文件</el-checkbox>
         </el-form-item>
       </el-form>
       

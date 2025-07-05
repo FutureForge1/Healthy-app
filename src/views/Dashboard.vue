@@ -12,7 +12,10 @@
             <el-icon size="24" color="#409EFF"><DataAnalysis /></el-icon>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ dashboardStats.totalAnalyses }}</div>
+            <div class="stat-value">
+              <span v-if="loading">--</span>
+              <span v-else>{{ dashboardStats.totalAnalyses || 0 }}</span>
+            </div>
             <div class="stat-label">数据分析</div>
           </div>
         </div>
@@ -21,7 +24,10 @@
             <el-icon size="24" color="#67C23A"><PieChart /></el-icon>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ dashboardStats.totalReports }}</div>
+            <div class="stat-value">
+              <span v-if="loading">--</span>
+              <span v-else>{{ dashboardStats.totalReports || 0 }}</span>
+            </div>
             <div class="stat-label">生成报表</div>
           </div>
         </div>
@@ -30,8 +36,23 @@
             <el-icon size="24" color="#E6A23C"><Document /></el-icon>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ dashboardStats.totalExports }}</div>
+            <div class="stat-value">
+              <span v-if="loading">--</span>
+              <span v-else>{{ dashboardStats.totalExports || 0 }}</span>
+            </div>
             <div class="stat-label">数据导出</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <el-icon size="24" color="#F56C6C"><OfficeBuilding /></el-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">
+              <span v-if="loading">--</span>
+              <span v-else>{{ dashboardStats.totalInstitutions || 0 }}</span>
+            </div>
+            <div class="stat-label">医疗机构</div>
           </div>
         </div>
       </div>
@@ -104,7 +125,14 @@
             </el-badge>
           </div>
           <div class="notification-list">
+            <div v-if="loading" class="loading-placeholder">
+              <el-skeleton :rows="3" animated />
+            </div>
+            <div v-else-if="notifications.length === 0" class="empty-placeholder">
+              <el-empty description="暂无通知" :image-size="60" />
+            </div>
             <div
+              v-else
               v-for="notification in notifications"
               :key="notification.id"
               class="notification-item"
@@ -130,7 +158,14 @@
             <el-button link size="small">查看全部</el-button>
           </div>
           <div class="activity-list">
+            <div v-if="loading" class="loading-placeholder">
+              <el-skeleton :rows="4" animated />
+            </div>
+            <div v-else-if="recentActivities.length === 0" class="empty-placeholder">
+              <el-empty description="暂无活动记录" :image-size="60" />
+            </div>
             <div
+              v-else
               v-for="activity in recentActivities"
               :key="activity.id"
               class="activity-item"
@@ -151,6 +186,9 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { gsap } from 'gsap'
 import * as echarts from 'echarts'
+import { ElMessage, ElLoading } from 'element-plus'
+import dashboardAPI from '@/api/dashboard'
+import { testDashboardAPIs, generateMockData } from '@/utils/dashboardTest'
 import {
   User,
   DataAnalysis,
@@ -182,65 +220,192 @@ const currentDate = computed(() => {
   })
 })
 
-// Dashboard统计数据
+// Dashboard统计数据 - 从后端获取
 const dashboardStats = ref({
-  totalAnalyses: 1248,
-  totalReports: 356,
-  totalExports: 89
+  totalAnalyses: 0,
+  totalReports: 0,
+  totalExports: 0,
+  totalInstitutions: 0,
+  totalPersonnel: 0,
+  totalBeds: 0
 })
 
-// 通知数据
-const notifications = ref([
-  {
-    id: 1,
-    type: 'info',
-    title: '系统维护通知',
-    time: '2小时前',
-    read: false
-  },
-  {
-    id: 2,
-    type: 'success',
-    title: '数据导入完成',
-    time: '4小时前',
-    read: false
-  },
-  {
-    id: 3,
-    type: 'warning',
-    title: '存储空间不足',
-    time: '1天前',
-    read: true
-  }
-])
+// 通知数据 - 从后端获取
+const notifications = ref([])
 
-// 最近活动
-const recentActivities = ref([
-  {
-    id: 1,
-    time: '10:30',
-    content: '导出了人口统计报表'
-  },
-  {
-    id: 2,
-    time: '09:15',
-    content: '查看了医疗机构分布图'
-  },
-  {
-    id: 3,
-    time: '昨天 16:45',
-    content: '生成了月度分析报告'
-  },
-  {
-    id: 4,
-    time: '昨天 14:20',
-    content: '更新了用户权限设置'
-  }
-])
+// 最近活动 - 从后端获取
+const recentActivities = ref([])
+
+// 加载状态
+const loading = ref(false)
+
+// 图表数据
+const chartData = ref({
+  populationTrend: null,
+  institutionDistribution: null
+})
 
 // 导航方法
 const navigateTo = (path) => {
   router.push(path)
+}
+
+// 加载仪表盘数据
+const loadDashboardData = async () => {
+  try {
+    loading.value = true
+
+    // 并行加载所有数据
+    const [
+      overviewData,
+      coreMetrics,
+      populationTrend,
+      institutionDistribution,
+      recentActivitiesData,
+      notificationsData
+    ] = await Promise.allSettled([
+      dashboardAPI.getDashboardOverview(),
+      dashboardAPI.getCoreMetrics('month'),
+      dashboardAPI.getPopulationTrendChart(),
+      dashboardAPI.getInstitutionDistributionChart(),
+      dashboardAPI.getRecentActivities(5),
+      dashboardAPI.getSystemNotifications(5)
+    ])
+
+    // 处理概览数据
+    if (overviewData.status === 'fulfilled' && overviewData.value?.data) {
+      const data = overviewData.value.data
+      dashboardStats.value = {
+        totalAnalyses: data.totalAnalyses || 0,
+        totalReports: data.totalReports || 0,
+        totalExports: data.totalExports || 0,
+        totalInstitutions: data.totalInstitutions || 0,
+        totalPersonnel: data.totalPersonnel || 0,
+        totalBeds: data.totalBeds || 0
+      }
+    }
+
+    // 处理核心指标数据
+    if (coreMetrics.status === 'fulfilled' && coreMetrics.value?.data) {
+      const metrics = coreMetrics.value.data
+      // 更新统计数据
+      Object.assign(dashboardStats.value, metrics)
+    }
+
+    // 处理人口趋势数据
+    if (populationTrend.status === 'fulfilled' && populationTrend.value?.data) {
+      chartData.value.populationTrend = populationTrend.value.data
+    }
+
+    // 处理医疗机构分布数据
+    if (institutionDistribution.status === 'fulfilled' && institutionDistribution.value?.data) {
+      chartData.value.institutionDistribution = institutionDistribution.value.data
+    }
+
+    // 处理最近活动数据
+    if (recentActivitiesData.status === 'fulfilled' && recentActivitiesData.value?.data) {
+      recentActivities.value = recentActivitiesData.value.data.map(item => ({
+        id: item.id,
+        time: formatTime(item.createTime),
+        content: item.description || item.operationDesc
+      }))
+    }
+
+    // 处理通知数据
+    if (notificationsData.status === 'fulfilled' && notificationsData.value?.data) {
+      notifications.value = notificationsData.value.data.map(item => ({
+        id: item.id,
+        type: getNotificationType(item.level),
+        title: item.title,
+        time: formatTime(item.createTime),
+        read: item.isRead
+      }))
+    }
+
+  } catch (error) {
+    console.error('加载仪表盘数据失败:', error)
+    ElMessage.error('加载数据失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 格式化时间
+const formatTime = (timestamp) => {
+  if (!timestamp) return ''
+
+  const now = new Date()
+  const time = new Date(timestamp)
+  const diff = now - time
+
+  const minutes = Math.floor(diff / (1000 * 60))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+  if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 7) {
+    return `${days}天前`
+  } else {
+    return time.toLocaleDateString('zh-CN')
+  }
+}
+
+// 获取通知类型
+const getNotificationType = (level) => {
+  const typeMap = {
+    'INFO': 'info',
+    'SUCCESS': 'success',
+    'WARNING': 'warning',
+    'ERROR': 'error'
+  }
+  return typeMap[level] || 'info'
+}
+
+// 测试 API 连接（开发模式）
+const testAPIConnection = async () => {
+  if (import.meta.env.DEV) {
+    console.log('🔧 开发模式 - 测试 Dashboard API 连接')
+    try {
+      const results = await testDashboardAPIs()
+
+      if (results.failed.length === 0) {
+        ElMessage.success(`API 测试成功！所有 ${results.total} 个接口正常`)
+      } else {
+        ElMessage.warning(`API 测试完成：${results.success.length}/${results.total} 个接口正常`)
+        console.log('使用模拟数据作为后备方案')
+
+        // 使用模拟数据
+        const mockData = generateMockData()
+        dashboardStats.value = mockData.dashboardOverview
+        chartData.value.populationTrend = mockData.populationTrend
+        chartData.value.institutionDistribution = mockData.institutionDistribution
+        recentActivities.value = mockData.recentActivities.map(item => ({
+          id: item.id,
+          time: formatTime(item.createTime),
+          content: item.description
+        }))
+        notifications.value = mockData.notifications.map(item => ({
+          id: item.id,
+          type: getNotificationType(item.level),
+          title: item.title,
+          time: formatTime(item.createTime),
+          read: item.isRead
+        }))
+
+        // 重新初始化图表
+        setTimeout(() => {
+          initPopulationChart()
+          initInstitutionChart()
+        }, 100)
+      }
+    } catch (error) {
+      console.error('API 测试失败:', error)
+      ElMessage.error('API 测试失败，请检查网络连接')
+    }
+  }
 }
 
 // 获取通知图标
@@ -270,6 +435,13 @@ const initPopulationChart = () => {
   if (!populationChart.value) return
 
   const chart = echarts.init(populationChart.value)
+
+  // 使用真实数据或默认数据
+  const data = chartData.value.populationTrend || {
+    years: ['2019', '2020', '2021', '2022', '2023'],
+    values: [1420, 1435, 1448, 1456, 1462]
+  }
+
   const option = {
     title: {
       text: '近5年人口增长趋势',
@@ -279,11 +451,14 @@ const initPopulationChart = () => {
       }
     },
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
+      formatter: function(params) {
+        return `${params[0].name}<br/>人口: ${params[0].value}万人`
+      }
     },
     xAxis: {
       type: 'category',
-      data: ['2019', '2020', '2021', '2022', '2023']
+      data: data.years || data.categories || ['2019', '2020', '2021', '2022', '2023']
     },
     yAxis: {
       type: 'value',
@@ -292,11 +467,14 @@ const initPopulationChart = () => {
       }
     },
     series: [{
-      data: [1420, 1435, 1448, 1456, 1462],
+      data: data.values || data.data || [1420, 1435, 1448, 1456, 1462],
       type: 'line',
       smooth: true,
       itemStyle: {
         color: '#409EFF'
+      },
+      lineStyle: {
+        width: 3
       },
       areaStyle: {
         color: {
@@ -315,6 +493,11 @@ const initPopulationChart = () => {
     }]
   }
   chart.setOption(option)
+
+  // 响应式
+  window.addEventListener('resize', () => {
+    chart.resize()
+  })
 }
 
 // 初始化医疗机构分布图表
@@ -322,6 +505,30 @@ const initInstitutionChart = () => {
   if (!institutionChart.value) return
 
   const chart = echarts.init(institutionChart.value)
+
+  // 使用真实数据或默认数据
+  const data = chartData.value.institutionDistribution || [
+    { value: 46, name: '三级医院', itemStyle: { color: '#409EFF' } },
+    { value: 128, name: '二级医院', itemStyle: { color: '#67C23A' } },
+    { value: 573, name: '社区医院', itemStyle: { color: '#E6A23C' } },
+    { value: 501, name: '其他机构', itemStyle: { color: '#F56C6C' } }
+  ]
+
+  // 处理后端数据格式
+  const chartDataFormatted = Array.isArray(data) ? data :
+    (data.categories ? data.categories.map((item, index) => ({
+      value: item.count || item.value,
+      name: item.name || item.category,
+      itemStyle: {
+        color: ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#9C27B0'][index % 5]
+      }
+    })) : [
+      { value: 46, name: '三级医院', itemStyle: { color: '#409EFF' } },
+      { value: 128, name: '二级医院', itemStyle: { color: '#67C23A' } },
+      { value: 573, name: '社区医院', itemStyle: { color: '#E6A23C' } },
+      { value: 501, name: '其他机构', itemStyle: { color: '#F56C6C' } }
+    ])
+
   const option = {
     title: {
       text: '医疗机构类型分布',
@@ -332,7 +539,12 @@ const initInstitutionChart = () => {
     },
     tooltip: {
       trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
+      formatter: '{a} <br/>{b}: {c}家 ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      data: chartDataFormatted.map(item => item.name)
     },
     series: [{
       name: '医疗机构',
@@ -358,15 +570,15 @@ const initInstitutionChart = () => {
       labelLine: {
         show: false
       },
-      data: [
-        { value: 46, name: '三级医院', itemStyle: { color: '#409EFF' } },
-        { value: 128, name: '二级医院', itemStyle: { color: '#67C23A' } },
-        { value: 573, name: '社区医院', itemStyle: { color: '#E6A23C' } },
-        { value: 501, name: '其他机构', itemStyle: { color: '#F56C6C' } }
-      ]
+      data: chartDataFormatted
     }]
   }
   chart.setOption(option)
+
+  // 响应式
+  window.addEventListener('resize', () => {
+    chart.resize()
+  })
 }
 
 // 初始化动画
@@ -477,12 +689,15 @@ onMounted(async () => {
   // 等待DOM渲染完成
   await nextTick()
 
+  // 加载仪表盘数据
+  await loadDashboardData()
+
   // 初始化动画
   setTimeout(() => {
     initAnimations()
   }, 100)
 
-  // 初始化图表
+  // 初始化图表（在数据加载完成后）
   setTimeout(() => {
     initPopulationChart()
     initInstitutionChart()
@@ -838,6 +1053,20 @@ onMounted(async () => {
   .chart {
     height: 250px;
   }
+}
+
+/* 加载和空状态样式 */
+.loading-placeholder {
+  padding: 16px;
+}
+
+.empty-placeholder {
+  padding: 20px;
+  text-align: center;
+}
+
+.empty-placeholder .el-empty {
+  padding: 0;
 }
 
 /* 滚动条样式 */

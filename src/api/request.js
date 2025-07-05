@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 // 创建 axios 实例
 const request = axios.create({
-  baseURL: '/api', // 基础URL，通过Vite代理到localhost:8080
+  baseURL: '/api', // 基础URL，通过Vite代理到http://localhost:8080
   timeout: 10000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json'

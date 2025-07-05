@@ -59,16 +59,76 @@ pnpm install
 ### 启动开发服务器
 
 ```bash
+# 启动 HTTP 开发服务器（推荐，避免证书问题）
 pnpm run dev
+
+# 或者显式启动 HTTP 模式
+pnpm run dev:http
+
+# 启动 HTTPS 模式（需要处理证书警告）
+pnpm run dev:https
 ```
 
-应用将在 `http://localhost:5173` 启动（如果端口被占用会自动选择其他端口）。
+**默认模式**: 应用将在 `http://localhost:5174` 启动（如果端口被占用会自动选择其他端口）。
+
+**HTTPS 模式**: 如果使用 `dev:https`，应用将在 `https://localhost:5174` 启动。首次访问时，浏览器可能显示证书警告，这是正常的，因为开发环境使用自签名证书。请点击"继续访问"或"接受风险"。
 
 ### 构建生产版本
 
 ```bash
 pnpm run build
 ```
+
+### 预览生产版本
+
+```bash
+# 预览构建结果（HTTPS）
+pnpm run preview:https
+```
+
+## HTTPS 配置
+
+本应用统一使用 HTTPS 协议以确保数据传输安全。
+
+### 开发环境
+- **前端服务**: `http://localhost:5174` (默认) 或 `https://localhost:5174` (HTTPS模式)
+- **后端服务**: `http://localhost:8080` (默认) 或 `https://localhost:8080` (HTTPS模式)
+- **协议选择**: 支持 HTTP 和 HTTPS 两种模式
+
+### 环境变量配置
+
+项目支持通过环境变量配置 HTTPS 设置：
+
+```bash
+# .env.development (HTTP 模式)
+VITE_DEV_SERVER_HTTPS=false
+VITE_DEV_SERVER_PORT=5174
+VITE_API_BASE_URL=http://localhost:8080
+VITE_TURNSTILE_SITE_KEY=your-turnstile-key
+
+# .env.development.https (HTTPS 模式)
+VITE_DEV_SERVER_HTTPS=true
+VITE_DEV_SERVER_PORT=5174
+VITE_API_BASE_URL=https://localhost:8080
+VITE_TURNSTILE_SITE_KEY=your-turnstile-key
+```
+
+### 协议选择
+
+**HTTP 模式（推荐用于开发）**:
+- 无需处理证书问题
+- 快速启动和调试
+- 适合本地开发环境
+
+**HTTPS 模式（用于生产环境测试）**:
+- 模拟生产环境
+- 需要处理自签名证书警告
+- 首次访问时：
+  1. 浏览器会显示"不安全"警告
+  2. 点击"高级"或"详细信息"
+  3. 选择"继续访问"或"接受风险"
+
+详细配置说明请参考 [HTTPS_SETUP.md](./HTTPS_SETUP.md)
 
 ## API 接口说明
 

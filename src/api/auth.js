@@ -80,7 +80,8 @@ export const sendEmailCode = (data) => {
   return request({
     url: '/mail/code',
     method: 'POST',
-    data
+    data,
+    timeout: 30000 // 增加到30秒超时，因为邮件发送可能需要更长时间
   })
 }
 

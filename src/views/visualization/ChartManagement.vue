@@ -229,7 +229,15 @@
                   </el-button>
                 </el-button-group>
               </div>
-              <div ref="previewChartRef" class="preview-chart"></div>
+              <!-- 使用新的图表组件 -->
+              <component
+                :is="previewChartComponent"
+                :data="previewChartData"
+                :x-axis-data="previewXAxisData"
+                title=""
+                height="300px"
+                class="preview-chart"
+              />
             </div>
           </el-col>
         </el-row>
@@ -263,7 +271,7 @@ import {
   Star,
   FullScreen
 } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import { PieChart, BarChart, LineChart } from '@/components/charts'
 import { visualizationApi } from '@/api/visualization'
 
 // 响应式数据
@@ -274,8 +282,11 @@ const isEditing = ref(false)
 
 // 图表引用
 const chartRefs = ref({})
-const previewChartRef = ref(null)
-let previewChart = null
+
+// 预览图表数据
+const previewChartComponent = ref('LineChart')
+const previewChartData = ref([120, 132, 101, 134, 90, 230, 210])
+const previewXAxisData = ref(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
 
 // 筛选条件
 const filters = reactive({
@@ -434,63 +445,29 @@ const initMiniChart = (chartId, config) => {
   return chart
 }
 
-// 初始化预览图表
-const initPreviewChart = () => {
-  if (!previewChartRef.value) return
-
-  previewChart = echarts.init(previewChartRef.value)
-  updatePreviewChart()
-}
-
 // 更新预览图表
 const updatePreviewChart = () => {
-  if (!previewChart) return
-
-  let option = {}
-
   switch (chartForm.type) {
     case 'bar':
-      option = {
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: ['示例1', '示例2', '示例3'] },
-        yAxis: { type: 'value' },
-        series: [{
-          type: 'bar',
-          data: [120, 200, 150],
-          itemStyle: { color: '#5470c6' }
-        }]
-      }
+      previewChartComponent.value = 'BarChart'
+      previewChartData.value = [120, 200, 150]
+      previewXAxisData.value = ['示例1', '示例2', '示例3']
       break
     case 'line':
-      option = {
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: ['示例1', '示例2', '示例3'] },
-        yAxis: { type: 'value' },
-        series: [{
-          type: 'line',
-          data: [120, 200, 150],
-          smooth: true,
-          itemStyle: { color: '#91cc75' }
-        }]
-      }
+      previewChartComponent.value = 'LineChart'
+      previewChartData.value = [120, 200, 150]
+      previewXAxisData.value = ['示例1', '示例2', '示例3']
       break
     case 'pie':
-      option = {
-        tooltip: { trigger: 'item' },
-        series: [{
-          type: 'pie',
-          radius: '70%',
-          data: [
-            { value: 335, name: '示例1' },
-            { value: 310, name: '示例2' },
-            { value: 234, name: '示例3' }
-          ]
-        }]
-      }
+      previewChartComponent.value = 'PieChart'
+      previewChartData.value = [
+        { name: '示例1', value: 335, color: '#5470c6' },
+        { name: '示例2', value: 310, color: '#91cc75' },
+        { name: '示例3', value: 234, color: '#fac858' }
+      ]
+      previewXAxisData.value = []
       break
   }
-
-  previewChart.setOption(option)
 }
 
 // 搜索处理
@@ -694,6 +671,7 @@ watch(() => chartForm.type, () => {
 // 生命周期
 onMounted(() => {
   loadData()
+  updatePreviewChart()
 })
 </script>
 

@@ -134,29 +134,7 @@
               <p>请填写您的账户信息</p>
             </div>
 
-            <!-- 后端状态检查 -->
-            <div class="backend-status" v-if="showBackendStatus">
-              <el-alert
-                :title="backendStatusMessage"
-                :type="backendStatusType"
-                :closable="false"
-                show-icon
-              >
-                <template #default>
-                  <div class="status-details">
-                    <p>{{ backendStatusMessage }}</p>
-                    <el-button
-                      size="small"
-                      type="primary"
-                      @click="checkBackendStatus"
-                      :loading="checkingBackend"
-                    >
-                      重新检查
-                    </el-button>
-                  </div>
-                </template>
-              </el-alert>
-            </div>
+
 
             <form class="register-form" @submit.prevent="submitBasicInfo">
               <div class="form-group">
@@ -252,7 +230,7 @@
                 <el-button
                   type="primary"
                   size="large"
-                  @click="submitBasicInfo"
+                  @click="goToEmailVerification"
                   :loading="submittingBasicInfo"
                 >
                   下一步
@@ -269,57 +247,85 @@
             </div>
 
             <div class="email-verification">
-              <div class="email-info">
-                <el-icon class="email-icon"><Message /></el-icon>
-                <div class="email-text">
-                  <div class="email-title">验证码已发送</div>
-                  <div class="email-desc">请查看您的邮箱并输入6位验证码</div>
-                </div>
-              </div>
-
-              <div class="verification-input">
-                <el-input
-                  v-model="emailVerificationCode"
-                  placeholder="请输入6位验证码"
-                  size="large"
-                  maxlength="6"
-                  @keyup.enter="verifyEmailCode"
-                >
-                  <template #prefix>
-                    <el-icon><Key /></el-icon>
-                  </template>
-                </el-input>
-              </div>
-
-              <div class="verification-actions">
-                <div class="resend-section">
-                  <span v-if="resendCountdown > 0" class="countdown-text">
-                    {{ resendCountdown }}秒后可重新发送
-                  </span>
-                  <el-button
-                    v-else
-                    text
-                    type="primary"
-                    @click="resendEmailCode"
-                    :loading="resendingCode"
-                  >
-                    重新发送验证码
-                  </el-button>
+              <!-- 未发送验证码状态 -->
+              <div v-if="!emailCodeSent" class="email-send-section">
+                <div class="email-info">
+                  <el-icon class="email-icon"><Message /></el-icon>
+                  <div class="email-text">
+                    <div class="email-title">邮箱验证</div>
+                    <div class="email-desc">我们将向 {{ registerForm.email }} 发送验证码</div>
+                  </div>
                 </div>
 
                 <div class="action-buttons">
-                  <el-button size="large" @click="currentStep = 2">
+                  <el-button size="large" @click="goBackToBasicInfo">
                     上一步
                   </el-button>
                   <el-button
                     type="primary"
                     size="large"
-                    @click="verifyEmailCode"
-                    :loading="verifyingEmail"
-                    :disabled="!emailVerificationCode || emailVerificationCode.length !== 6"
+                    @click="sendEmailVerificationCode"
+                    :loading="submittingBasicInfo"
                   >
-                    验证并注册
+                    发送验证码
                   </el-button>
+                </div>
+              </div>
+
+              <!-- 已发送验证码状态 -->
+              <div v-else class="email-verify-section">
+                <div class="email-info">
+                  <el-icon class="email-icon"><Message /></el-icon>
+                  <div class="email-text">
+                    <div class="email-title">验证码已发送</div>
+                    <div class="email-desc">请查看您的邮箱并输入6位验证码</div>
+                  </div>
+                </div>
+
+                <div class="verification-input">
+                  <el-input
+                    v-model="emailVerificationCode"
+                    placeholder="请输入6位验证码"
+                    size="large"
+                    maxlength="6"
+                    @keyup.enter="verifyEmailCode"
+                  >
+                    <template #prefix>
+                      <el-icon><Key /></el-icon>
+                    </template>
+                  </el-input>
+                </div>
+
+                <div class="verification-actions">
+                  <div class="resend-section">
+                    <span v-if="resendCountdown > 0" class="countdown-text">
+                      {{ resendCountdown }}秒后可重新发送
+                    </span>
+                    <el-button
+                      v-else
+                      text
+                      type="primary"
+                      @click="resendEmailCode"
+                      :loading="resendingCode"
+                    >
+                      重新发送验证码
+                    </el-button>
+                  </div>
+
+                  <div class="action-buttons">
+                    <el-button size="large" @click="goBackToBasicInfo">
+                      上一步
+                    </el-button>
+                    <el-button
+                      type="primary"
+                      size="large"
+                      @click="verifyEmailCode"
+                      :loading="verifyingEmail"
+                      :disabled="!emailVerificationCode || emailVerificationCode.length !== 6"
+                    >
+                      验证并注册
+                    </el-button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -416,7 +422,7 @@ const turnstileVerified = ref(false)
 const verifyingCaptcha = ref(false)
 
 // Cloudflare Turnstile配置
-const TURNSTILE_SITE_KEY = '0x4AAAAAABizYCjBu4_tDqsB'
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAABizYCjBu4_tDqsB'
 
 // 注册表单数据
 const registerForm = reactive({
@@ -434,15 +440,15 @@ const emailVerificationCode = ref('')
 const resendCountdown = ref(0)
 const resendingCode = ref(false)
 const verifyingEmail = ref(false)
+const emailCodeSent = ref(false) // 标记是否已发送验证码
 
 // 加载状态
 const submittingBasicInfo = ref(false)
 
-// 后端状态检查
-const showBackendStatus = ref(false)
-const backendStatusMessage = ref('')
-const backendStatusType = ref('info')
-const checkingBackend = ref(false)
+// 开发环境标识
+const isDev = import.meta.env.DEV
+
+
 
 // 表单验证错误
 const errors = reactive({
@@ -554,11 +560,6 @@ const proceedToNextStep = () => {
     verifyingCaptcha.value = false
     currentStep.value = 2
     ElMessage.success('验证通过，请填写注册信息')
-
-    // 进入第二步时检查后端状态
-    setTimeout(() => {
-      checkBackendStatus()
-    }, 1000)
   }, 500)
 }
 
@@ -643,60 +644,29 @@ const validateBasicInfo = () => {
   return isValid
 }
 
-// 检查后端状态
-const checkBackendStatus = async () => {
-  checkingBackend.value = true
-  showBackendStatus.value = true
-
-  try {
-    // 尝试访问后端健康检查接口
-    const response = await fetch('http://localhost:8080/api/mail/code', {
-      method: 'OPTIONS'
-    })
-
-    if (response.ok) {
-      backendStatusMessage.value = '后端服务连接正常'
-      backendStatusType.value = 'success'
-    } else {
-      backendStatusMessage.value = `后端服务响应异常 (状态码: ${response.status})`
-      backendStatusType.value = 'warning'
-    }
-  } catch (error) {
-    console.error('后端连接失败:', error)
-    backendStatusMessage.value = '无法连接到后端服务 (http://localhost:8080)，请确保后端服务器正在运行'
-    backendStatusType.value = 'error'
-  } finally {
-    checkingBackend.value = false
-  }
-}
-
-// 测试后端连接
-const testBackendConnection = async () => {
-  try {
-    const response = await fetch('http://localhost:8080/api/mail/code', {
-      method: 'OPTIONS'
-    })
-    console.log('后端连接测试:', response.status)
-    return response.ok
-  } catch (error) {
-    console.error('后端连接失败:', error)
-    return false
-  }
-}
-
-// 提交基本信息
-const submitBasicInfo = async () => {
+// 跳转到邮箱验证步骤（不发送验证码）
+const goToEmailVerification = () => {
   if (!validateBasicInfo()) {
     return
   }
 
-  // 先测试后端连接
-  const isBackendAvailable = await testBackendConnection()
-  if (!isBackendAvailable) {
-    ElMessage.error('无法连接到后端服务，请确保后端服务器正在运行在 http://localhost:8080')
-    return
-  }
+  // 只跳转到邮箱验证步骤，不发送验证码
+  currentStep.value = 3
+  emailCodeSent.value = false // 重置发送状态
+  ElMessage.success('请点击发送验证码按钮获取邮箱验证码')
+}
 
+// 回到基本信息步骤
+const goBackToBasicInfo = () => {
+  currentStep.value = 2
+  // 重置邮箱验证相关状态
+  emailCodeSent.value = false
+  emailVerificationCode.value = ''
+  resendCountdown.value = 0
+}
+
+// 发送邮箱验证码
+const sendEmailVerificationCode = async () => {
   try {
     submittingBasicInfo.value = true
 
@@ -725,7 +695,7 @@ const submitBasicInfo = async () => {
 
     if (response.status === 0) {
       ElMessage.success('验证码已发送到您的邮箱')
-      currentStep.value = 3
+      emailCodeSent.value = true // 标记已发送，切换到验证码输入界面
       startResendCountdown()
     } else {
       ElMessage.error(response.message || '发送验证码失败')
@@ -734,7 +704,10 @@ const submitBasicInfo = async () => {
     console.error('发送验证码失败:', error)
 
     // 详细的错误处理
-    if (error.response) {
+    if (error.code === 'ECONNABORTED') {
+      // 超时错误
+      ElMessage.error('请求超时，邮件服务器响应较慢，请稍后重试')
+    } else if (error.response) {
       // 服务器返回了错误状态码
       const status = error.response.status
       const data = error.response.data
@@ -748,20 +721,43 @@ const submitBasicInfo = async () => {
       if (status === 500) {
         ElMessage.error(`服务器内部错误: ${data.message || '请检查后端服务是否正常运行'}`)
       } else if (status === 404) {
-        ElMessage.error('API接口不存在，请检查后端服务')
+        ElMessage.error('邮件服务接口不存在，请检查后端服务配置')
       } else if (status === 400) {
-        ElMessage.error(`请求参数错误: ${data.message || '请检查数据格式'}`)
+        ElMessage.error(`请求参数错误: ${data.message || '请检查邮箱格式'}`)
       } else {
         ElMessage.error(`请求失败 (${status}): ${data.message || error.message}`)
       }
     } else if (error.request) {
       // 请求发出但没有收到响应
       console.error('网络错误:', error.request)
-      ElMessage.error('网络连接失败，请检查后端服务是否启动')
+      ElMessage.error('无法连接到邮件服务，请检查网络连接或后端服务状态')
     } else {
       // 其他错误
       console.error('未知错误:', error.message)
       ElMessage.error(`发送验证码失败: ${error.message}`)
+    }
+
+    // 如果是超时或网络问题，提供跳过选项（仅用于开发测试）
+    if (error.code === 'ECONNABORTED' || error.request) {
+      ElMessage({
+        message: '如果是开发环境，您可以暂时跳过邮箱验证直接进入下一步',
+        type: 'warning',
+        duration: 5000,
+        showClose: true
+      })
+
+      // 开发环境下提供跳过选项
+      if (import.meta.env.DEV) {
+        setTimeout(() => {
+          ElMessage({
+            message: '开发模式：点击确定跳过邮箱验证',
+            type: 'info',
+            duration: 0,
+            showClose: true,
+            customClass: 'dev-skip-message'
+          })
+        }, 2000)
+      }
     }
   } finally {
     submittingBasicInfo.value = false
@@ -1286,21 +1282,7 @@ onUnmounted(() => {
   }
 }
 
-/* 后端状态检查 */
-.backend-status {
-  margin-bottom: 20px;
-}
 
-.status-details {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.status-details p {
-  margin: 0;
-  font-size: 14px;
-}
 
 /* 注册表单 */
 .register-form {

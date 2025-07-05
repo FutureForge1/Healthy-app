@@ -4,8 +4,8 @@
 
 本文档详细说明了前端各页面与后端API端点的对应关系，帮助开发者了解每个页面调用的具体API接口。
 
-**前端服务**: `http://localhost:5174`  
-**后端服务**: `http://localhost:8080`  
+**前端服务**: `http://localhost:5174` (默认) 或 `https://localhost:5174` (HTTPS模式)
+**后端服务**: `http://localhost:8080` (默认) 或 `https://localhost:8080` (HTTPS模式)
 **API代理**: 前端通过Vite代理将 `/api/*` 请求转发到后端
 
 ---

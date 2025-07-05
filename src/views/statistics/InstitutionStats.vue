@@ -162,7 +162,15 @@
             <div class="chart-header">
               <h4>机构规模分布</h4>
             </div>
-            <div ref="scaleChartRef" class="chart"></div>
+            <!-- 使用新的饼图组件 -->
+            <PieChart
+              :data="scaleChartData"
+              title=""
+              height="300px"
+              :radius="'70%'"
+              :show-percentage="true"
+              class="chart"
+            />
           </div>
         </el-col>
       </el-row>
@@ -174,8 +182,8 @@
             <div class="chart-header">
               <h4>区域分布热力图</h4>
               <el-radio-group v-model="mapType" @change="updateMapChart">
-                <el-radio-button label="density">密度分布</el-radio-button>
-                <el-radio-button label="count">数量分布</el-radio-button>
+                <el-radio-button value="density">密度分布</el-radio-button>
+                <el-radio-button value="count">数量分布</el-radio-button>
               </el-radio-group>
             </div>
             <div ref="mapChartRef" class="chart map-chart"></div>
@@ -300,26 +308,31 @@ import {
   Upload,
   ArrowDown
 } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import { PieChart, BarChart, LineChart } from '@/components/charts'
 import { statisticsApi } from '@/api/statistics'
 
 // 响应式数据
 const loading = ref(false)
 const tableLoading = ref(false)
 
-// 图表引用
+// 图表引用（保留其他图表的引用）
 const typeChartRef = ref(null)
 const ownershipChartRef = ref(null)
-const scaleChartRef = ref(null)
 const mapChartRef = ref(null)
 const trendChartRef = ref(null)
 
-// 图表实例
+// 图表实例（保留其他图表的实例）
 let typeChart = null
 let ownershipChart = null
-let scaleChart = null
 let mapChart = null
 let trendChart = null
+
+// 机构规模图表数据
+const scaleChartData = ref([
+  { name: '大型', value: 45, color: '#5470c6' },
+  { name: '中型', value: 128, color: '#91cc75' },
+  { name: '小型', value: 267, color: '#fac858' }
+])
 
 // 筛选条件
 const filters = reactive({
@@ -512,36 +525,9 @@ const initOwnershipChart = () => {
   ownershipChart.setOption(option)
 }
 
-// 初始化规模图表
-const initScaleChart = () => {
-  if (!scaleChartRef.value) return
-
-  scaleChart = echarts.init(scaleChartRef.value)
-
-  const option = {
-    tooltip: {
-      trigger: 'item'
-    },
-    series: [{
-      name: '机构规模',
-      type: 'pie',
-      radius: '70%',
-      data: [
-        { value: 45, name: '大型(>500床)', itemStyle: { color: '#ee6666' } },
-        { value: 128, name: '中型(100-500床)', itemStyle: { color: '#73d13d' } },
-        { value: 1075, name: '小型(<100床)', itemStyle: { color: '#40a9ff' } }
-      ],
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    }]
-  }
-
-  scaleChart.setOption(option)
+// 更新规模图表数据（现在只需要更新响应式数据）
+const updateScaleChart = () => {
+  // 数据已经在 scaleChartData 中定义，组件会自动响应变化
 }
 
 // 初始化地图图表
@@ -746,7 +732,7 @@ onMounted(async () => {
   await nextTick()
   initTypeChart()
   initOwnershipChart()
-  initScaleChart()
+  updateScaleChart()
   initMapChart()
   initTrendChart()
   loadData()

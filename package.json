@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:http": "vite --mode development",
+    "dev:https": "vite --mode development.https",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:https": "vite preview --https"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

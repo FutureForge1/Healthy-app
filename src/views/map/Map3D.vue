@@ -80,10 +80,10 @@
           <div class="toolbar-section">
             <h5>数据类型</h5>
             <el-checkbox-group v-model="activeDataTypes" @change="updateMapData">
-              <el-checkbox label="population">人口分布</el-checkbox>
-              <el-checkbox label="medical">医疗机构</el-checkbox>
-              <el-checkbox label="health">健康指标</el-checkbox>
-              <el-checkbox label="emergency">应急设施</el-checkbox>
+              <el-checkbox value="population">人口分布</el-checkbox>
+              <el-checkbox value="medical">医疗机构</el-checkbox>
+              <el-checkbox value="health">健康指标</el-checkbox>
+              <el-checkbox value="emergency">应急设施</el-checkbox>
             </el-checkbox-group>
           </div>
           
@@ -206,13 +206,29 @@
             <el-col :span="12">
               <div class="chart-container">
                 <h5>人口年龄分布</h5>
-                <div ref="ageDistributionChart" class="chart"></div>
+                <!-- 使用新的饼图组件 -->
+                <PieChart
+                  :data="ageDistributionData"
+                  title=""
+                  height="300px"
+                  :radius="'70%'"
+                  :show-percentage="true"
+                  class="chart"
+                />
               </div>
             </el-col>
             <el-col :span="12">
               <div class="chart-container">
                 <h5>医疗资源分布</h5>
-                <div ref="medicalResourceChart" class="chart"></div>
+                <!-- 使用新的柱状图组件 -->
+                <BarChart
+                  :data="medicalResourceData"
+                  :x-axis-data="medicalResourceXAxis"
+                  title=""
+                  height="300px"
+                  :colors="['#5470c6', '#91cc75', '#fac858', '#ee6666']"
+                  class="chart"
+                />
               </div>
             </el-col>
           </el-row>
@@ -389,7 +405,7 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import * as echarts from 'echarts'
+import { PieChart, BarChart } from '@/components/charts'
 import {
   DataLine,
   Operation,
@@ -416,8 +432,17 @@ const timeRange = ref('realtime')
 
 // 图表引用
 const map3dRef = ref(null)
-const ageDistributionChart = ref(null)
-const medicalResourceChart = ref(null)
+
+// 图表数据
+const ageDistributionData = ref([
+  { name: '0-18岁', value: 2580, color: '#5470c6' },
+  { name: '19-35岁', value: 4200, color: '#91cc75' },
+  { name: '36-60岁', value: 3800, color: '#fac858' },
+  { name: '60岁以上', value: 1420, color: '#ee6666' }
+])
+
+const medicalResourceData = ref([45, 128, 267, 89])
+const medicalResourceXAxis = ref(['医院', '诊所', '药店', '急救站'])
 
 // 地图数据
 const mapData = reactive({
@@ -599,51 +624,13 @@ const handleAreaClick = (area) => {
   selectedArea.value = area
   areaDialogVisible.value = true
 
-  // 初始化区域详情图表
-  nextTick(() => {
-    initAreaCharts()
-  })
+  // 更新区域详情图表
+  updateAreaCharts()
 }
 
-// 初始化区域详情图表
-const initAreaCharts = () => {
-  // 人口年龄分布图表
-  if (ageDistributionChart.value) {
-    const chart1 = echarts.init(ageDistributionChart.value)
-    const option1 = {
-      tooltip: { trigger: 'item' },
-      series: [{
-        type: 'pie',
-        radius: '70%',
-        data: [
-          { value: 25, name: '0-18岁' },
-          { value: 45, name: '19-35岁' },
-          { value: 20, name: '36-60岁' },
-          { value: 10, name: '60岁以上' }
-        ]
-      }]
-    }
-    chart1.setOption(option1)
-  }
-
-  // 医疗资源分布图表
-  if (medicalResourceChart.value) {
-    const chart2 = echarts.init(medicalResourceChart.value)
-    const option2 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['医院', '诊所', '药店', '急救站']
-      },
-      yAxis: { type: 'value' },
-      series: [{
-        type: 'bar',
-        data: [12, 45, 78, 8],
-        itemStyle: { color: '#5470c6' }
-      }]
-    }
-    chart2.setOption(option2)
-  }
+// 更新区域详情图表数据（现在只需要更新响应式数据）
+const updateAreaCharts = () => {
+  // 数据已经在响应式变量中定义，组件会自动响应变化
 }
 
 // 显示数据面板

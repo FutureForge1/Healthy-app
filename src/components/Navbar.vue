@@ -143,7 +143,7 @@ const toggleUserMenu = () => {
 }
 
 const handleLogout = () => {
-  userStore.logoutAction()
+  userStore.logout()
   userMenuOpen.value = false
   router.push('/')
 }

@@ -1,5 +1,8 @@
 import request from './request'
 
+//这个是专门给仪表盘获取数据的
+
+
 /**
  * 获取核心指标数据
  * @param {string} timeRange 时间范围: today, week, month, year
@@ -10,6 +13,31 @@ export const getCoreMetrics = (timeRange = 'today') => {
     url: '/statistics/core-metrics',
     method: 'GET',
     params: { timeRange }
+  })
+}
+
+/**
+ * 获取仪表盘统计数据
+ * @returns {Promise}
+ */
+export const getDashboardStats = () => {
+  return request({
+    url: '/statistics/dashboard/overview',
+    method: 'GET'
+  })
+}
+
+/**
+ * 获取仪表盘图表数据
+ * @param {string} chartType 图表类型: population, institution, personnel, bed
+ * @param {Object} params 查询参数
+ * @returns {Promise}
+ */
+export const getDashboardChartData = (chartType, params = {}) => {
+  return request({
+    url: `/statistics/dashboard/charts/${chartType}`,
+    method: 'GET',
+    params
   })
 }
 
@@ -46,25 +74,57 @@ export const getHospitalStats = (params = {}) => {
   })
 }
 
+
+
 /**
- * 获取医护人员统计数据
- * @param {Object} params 查询参数
- * @param {string} params.district 行政区划
- * @param {string} params.profession 职业类型
- * @param {string} params.level 职称等级
- * @param {string} params.year 年份
+ * 获取床位分类统计
+ * @param {Object} queryParams 查询参数
+ * @param {Object} queryParams.filters 过滤条件
+ * @param {Array} queryParams.sort 排序条件
+ * @param {Object} queryParams.pageInfo 分页信息
  * @returns {Promise}
  */
-export const getStaffStats = (params = {}) => {
+export const getBedCategoryStats = (queryParams = {}) => {
   return request({
-    url: '/statistics/staff',
+    url: '/statistics/bed/category-stats/query',
+    method: 'POST',
+    data: queryParams
+  })
+}
+
+/**
+ * 获取历年床位总数
+ * @param {Object} queryParams 查询参数
+ * @param {Object} queryParams.filters 过滤条件
+ * @param {Array} queryParams.sort 排序条件
+ * @param {Object} queryParams.pageInfo 分页信息
+ * @returns {Promise}
+ */
+export const getBedTotalCount = (queryParams = {}) => {
+  return request({
+    url: '/statistics/bed/total-count/query',
+    method: 'POST',
+    data: queryParams
+  })
+}
+
+/**
+ * 获取床位使用率分析
+ * @param {Object} params 查询参数
+ * @param {number} params.year 年份
+ * @param {string} params.hospitalType 医院类型
+ * @returns {Promise}
+ */
+export const getBedUtilizationAnalysis = (params = {}) => {
+  return request({
+    url: '/statistics/bed/utilization-analysis',
     method: 'GET',
     params
   })
 }
 
 /**
- * 获取床位资源统计数据
+ * 获取床位资源统计数据（兼容旧接口）
  * @param {Object} params 查询参数
  * @param {string} params.district 行政区划
  * @param {string} params.hospitalLevel 医院等级
@@ -81,7 +141,38 @@ export const getBedStats = (params = {}) => {
 }
 
 /**
- * 获取医疗服务统计数据
+ * 获取医院服务统计
+ * @param {Object} queryParams 查询参数
+ * @param {Object} queryParams.filters 过滤条件
+ * @param {Array} queryParams.sort 排序条件
+ * @param {Object} queryParams.pageInfo 分页信息
+ * @returns {Promise}
+ */
+export const getHospitalServiceStats = (queryParams = {}) => {
+  return request({
+    url: '/statistics/service/hospital-service/query',
+    method: 'POST',
+    data: queryParams
+  })
+}
+
+/**
+ * 获取医疗服务质量分析
+ * @param {Object} params 查询参数
+ * @param {string} params.hospitalType 医院类型
+ * @param {string} params.analysisType 分析类型
+ * @returns {Promise}
+ */
+export const getServiceQualityAnalysis = (params = {}) => {
+  return request({
+    url: '/statistics/service/quality-analysis',
+    method: 'GET',
+    params
+  })
+}
+
+/**
+ * 获取医疗服务统计数据（兼容旧接口）
  * @param {Object} params 查询参数
  * @param {string} params.serviceType 服务类型: outpatient, inpatient, emergency, surgery
  * @param {string} params.timeRange 时间范围: today, week, month, year
@@ -97,7 +188,54 @@ export const getServiceStats = (params = {}) => {
 }
 
 /**
- * 获取医疗费用统计数据
+ * 获取门诊费用统计
+ * @param {Object} queryParams 查询参数
+ * @param {Object} queryParams.filters 过滤条件
+ * @param {Array} queryParams.sort 排序条件
+ * @param {Object} queryParams.pageInfo 分页信息
+ * @returns {Promise}
+ */
+export const getOutpatientCostStats = (queryParams = {}) => {
+  return request({
+    url: '/statistics/cost/outpatient/query',
+    method: 'POST',
+    data: queryParams
+  })
+}
+
+/**
+ * 获取住院费用统计
+ * @param {Object} queryParams 查询参数
+ * @param {Object} queryParams.filters 过滤条件
+ * @param {Array} queryParams.sort 排序条件
+ * @param {Object} queryParams.pageInfo 分页信息
+ * @returns {Promise}
+ */
+export const getInpatientCostStats = (queryParams = {}) => {
+  return request({
+    url: '/statistics/cost/inpatient/query',
+    method: 'POST',
+    data: queryParams
+  })
+}
+
+/**
+ * 获取费用结构对比分析
+ * @param {Object} params 查询参数
+ * @param {string} params.compareType 对比类型
+ * @param {string} params.costType 费用类型
+ * @returns {Promise}
+ */
+export const getCostStructureComparison = (params = {}) => {
+  return request({
+    url: '/statistics/cost/structure-comparison',
+    method: 'GET',
+    params
+  })
+}
+
+/**
+ * 获取医疗费用统计数据（兼容旧接口）
  * @param {Object} params 查询参数
  * @param {string} params.costType 费用类型: total, outpatient, inpatient, drug
  * @param {string} params.timeRange 时间范围: today, week, month, year
@@ -207,6 +345,10 @@ export const statisticsApi = {
   // 核心指标
   getCoreMetrics,
 
+  // 仪表盘专用接口
+  getDashboardStats,
+  getDashboardChartData,
+
   // 人口统计
   getPopulationStats,
 
@@ -214,17 +356,24 @@ export const statisticsApi = {
   getHospitalStats,
   getInstitutionStats: getHospitalStats, // 别名
 
-  // 医护人员统计
-  getPersonnelStats: getStaffStats,
+  //这个改了一下：现在医护人员统计已移至 src/api/personnel.js
 
-  // 床位统计
-  getBedStats,
+  // 床位统计 - 新接口
+  getBedCategoryStats,
+  getBedTotalCount,
+  getBedUtilizationAnalysis,
+  getBedStats, // 兼容旧接口
 
-  // 服务统计
-  getServiceStats,
+  // 服务统计 - 新接口
+  getHospitalServiceStats,
+  getServiceQualityAnalysis,
+  getServiceStats, // 兼容旧接口
 
-  // 费用统计
-  getCostStats,
+  // 费用统计 - 新接口
+  getOutpatientCostStats,
+  getInpatientCostStats,
+  getCostStructureComparison,
+  getCostStats, // 兼容旧接口
 
   // 趋势分析
   getTrendAnalysis,

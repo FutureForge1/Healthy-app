@@ -337,28 +337,63 @@
           <el-col :span="12">
             <div class="chart-container">
               <h5>操作类型分布</h5>
-              <div ref="operationTypeChart" class="chart"></div>
+              <!-- 使用新的饼图组件 -->
+              <PieChart
+                :data="operationTypeData"
+                title=""
+                height="300px"
+                :radius="'70%'"
+                :show-percentage="true"
+                class="chart"
+              />
             </div>
           </el-col>
           <el-col :span="12">
             <div class="chart-container">
               <h5>操作时间分布</h5>
-              <div ref="operationTimeChart" class="chart"></div>
+              <!-- 使用新的折线图组件 -->
+              <LineChart
+                :data="operationTimeData"
+                :x-axis-data="operationTimeXAxis"
+                title=""
+                height="300px"
+                :smooth="true"
+                :colors="['#5470c6']"
+                class="chart"
+              />
             </div>
           </el-col>
         </el-row>
-        
+
         <el-row :gutter="20" style="margin-top: 20px;">
           <el-col :span="12">
             <div class="chart-container">
               <h5>用户活跃度</h5>
-              <div ref="userActivityChart" class="chart"></div>
+              <!-- 使用新的柱状图组件 -->
+              <BarChart
+                :data="userActivityData"
+                :x-axis-data="userActivityXAxis"
+                title=""
+                height="300px"
+                :colors="['#91cc75']"
+                class="chart"
+              />
             </div>
           </el-col>
           <el-col :span="12">
             <div class="chart-container">
               <h5>模块使用情况</h5>
-              <div ref="moduleUsageChart" class="chart"></div>
+              <!-- 使用新的环形图组件 -->
+              <PieChart
+                :data="moduleUsageData"
+                title=""
+                height="300px"
+                :is-donut="true"
+                :inner-radius="'40%'"
+                :radius="'70%'"
+                :show-percentage="true"
+                class="chart"
+              />
             </div>
           </el-col>
         </el-row>
@@ -377,7 +412,7 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import * as echarts from 'echarts'
+import { PieChart, BarChart, LineChart } from '@/components/charts'
 import {
   Download,
   TrendCharts,
@@ -401,11 +436,28 @@ const detailDialogVisible = ref(false)
 const analysisDialogVisible = ref(false)
 const currentLog = ref(null)
 
-// 图表引用
-const operationTypeChart = ref(null)
-const operationTimeChart = ref(null)
-const userActivityChart = ref(null)
-const moduleUsageChart = ref(null)
+// 图表数据
+const operationTypeData = ref([
+  { name: '查询', value: 1048, color: '#5470c6' },
+  { name: '新增', value: 735, color: '#91cc75' },
+  { name: '修改', value: 580, color: '#fac858' },
+  { name: '删除', value: 484, color: '#ee6666' },
+  { name: '导出', value: 300, color: '#73c0de' }
+])
+
+const operationTimeData = ref([12, 8, 45, 120, 85, 35])
+const operationTimeXAxis = ref(['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'])
+
+const userActivityData = ref([320, 280, 250, 180, 150])
+const userActivityXAxis = ref(['张三', '李四', '王五', '赵六', '钱七'])
+
+const moduleUsageData = ref([
+  { name: '数据统计', value: 1048, color: '#5470c6' },
+  { name: '用户管理', value: 735, color: '#91cc75' },
+  { name: '数据管理', value: 580, color: '#fac858' },
+  { name: '可视化', value: 484, color: '#ee6666' },
+  { name: '审计日志', value: 300, color: '#73c0de' }
+])
 
 // 筛选条件
 const filters = reactive({
@@ -578,103 +630,9 @@ const getBrowserInfo = (userAgent) => {
   return '其他'
 }
 
-// 初始化图表
-const initAnalysisCharts = () => {
-  // 操作类型分布图表
-  if (operationTypeChart.value) {
-    const chart1 = echarts.init(operationTypeChart.value)
-    const option1 = {
-      tooltip: { trigger: 'item' },
-      series: [{
-        type: 'pie',
-        radius: '70%',
-        data: [
-          { value: 1048, name: '查询' },
-          { value: 735, name: '新增' },
-          { value: 580, name: '修改' },
-          { value: 484, name: '删除' },
-          { value: 300, name: '导出' }
-        ],
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }]
-    }
-    chart1.setOption(option1)
-  }
-
-  // 操作时间分布图表
-  if (operationTimeChart.value) {
-    const chart2 = echarts.init(operationTimeChart.value)
-    const option2 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
-      },
-      yAxis: { type: 'value' },
-      series: [{
-        type: 'line',
-        data: [12, 8, 45, 120, 85, 35],
-        smooth: true,
-        itemStyle: { color: '#5470c6' },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(84, 112, 198, 0.3)' },
-              { offset: 1, color: 'rgba(84, 112, 198, 0.1)' }
-            ]
-          }
-        }
-      }]
-    }
-    chart2.setOption(option2)
-  }
-
-  // 用户活跃度图表
-  if (userActivityChart.value) {
-    const chart3 = echarts.init(userActivityChart.value)
-    const option3 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['张三', '李四', '王五', '赵六', '钱七']
-      },
-      yAxis: { type: 'value' },
-      series: [{
-        type: 'bar',
-        data: [320, 280, 250, 180, 150],
-        itemStyle: { color: '#91cc75' }
-      }]
-    }
-    chart3.setOption(option3)
-  }
-
-  // 模块使用情况图表
-  if (moduleUsageChart.value) {
-    const chart4 = echarts.init(moduleUsageChart.value)
-    const option4 = {
-      tooltip: { trigger: 'item' },
-      series: [{
-        type: 'pie',
-        radius: ['40%', '70%'],
-        data: [
-          { value: 1048, name: '数据统计' },
-          { value: 735, name: '用户管理' },
-          { value: 580, name: '数据管理' },
-          { value: 484, name: '可视化' },
-          { value: 300, name: '系统设置' }
-        ]
-      }]
-    }
-    chart4.setOption(option4)
-  }
+// 更新图表数据（现在只需要更新响应式数据）
+const updateAnalysisCharts = () => {
+  // 数据已经在响应式变量中定义，组件会自动响应变化
 }
 
 // 搜索处理
@@ -833,6 +791,7 @@ const loadLogsList = async () => {
 // 生命周期
 onMounted(() => {
   loadLogsList()
+  updateAnalysisCharts()
 })
 </script>
 

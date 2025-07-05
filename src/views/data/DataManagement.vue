@@ -267,7 +267,18 @@
                 <el-option label="最近90天" value="90d" />
               </el-select>
             </div>
-            <div ref="dataVolumeChart" class="chart"></div>
+            <!-- 使用新的折线图组件 -->
+            <LineChart
+              :data="dataVolumeData"
+              :x-axis-data="dataVolumeXAxis"
+              title=""
+              height="300px"
+              :smooth="true"
+              :show-area="true"
+              :area-opacity="0.3"
+              :colors="['#5470c6']"
+              class="chart"
+            />
           </div>
         </el-col>
         
@@ -281,7 +292,17 @@
                 <el-option label="最近90天" value="90d" />
               </el-select>
             </div>
-            <div ref="qualityTrendChart" class="chart"></div>
+            <!-- 使用新的折线图组件 -->
+            <LineChart
+              :data="qualityTrendData"
+              :x-axis-data="qualityTrendXAxis"
+              title=""
+              height="300px"
+              :smooth="true"
+              :colors="['#91cc75']"
+              :y-axis-formatter="(value) => `${value}分`"
+              class="chart"
+            />
           </div>
         </el-col>
       </el-row>
@@ -292,7 +313,8 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import * as echarts from 'echarts'
+import { LineChart } from '@/components/charts'
+import { dataApi } from '@/api/data'
 import {
   Upload,
   Search,
@@ -312,9 +334,11 @@ const loading = ref(false)
 const chartPeriod = ref('30d')
 const qualityPeriod = ref('30d')
 
-// 图表引用
-const dataVolumeChart = ref(null)
-const qualityTrendChart = ref(null)
+// 图表数据
+const dataVolumeData = ref([1200, 1350, 1180, 1420, 1680, 1590, 1750])
+const dataVolumeXAxis = ref(['12-01', '12-02', '12-03', '12-04', '12-05', '12-06', '12-07'])
+const qualityTrendData = ref([85, 87, 84, 89, 92, 88, 91])
+const qualityTrendXAxis = ref(['12-01', '12-02', '12-03', '12-04', '12-05', '12-06', '12-07'])
 
 // 概览数据
 const overviewData = reactive({
@@ -433,119 +457,294 @@ const getStatusText = (status) => {
   return textMap[status] || '未知'
 }
 
-// 初始化图表
-const initCharts = () => {
-  // 数据量趋势图表
-  if (dataVolumeChart.value) {
-    const chart1 = echarts.init(dataVolumeChart.value)
-    const option1 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['12-01', '12-02', '12-03', '12-04', '12-05', '12-06', '12-07']
-      },
-      yAxis: { type: 'value' },
-      series: [{
-        name: '数据量',
-        type: 'line',
-        data: [1200, 1350, 1180, 1420, 1680, 1590, 1750],
-        smooth: true,
-        itemStyle: { color: '#5470c6' },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(84, 112, 198, 0.3)' },
-              { offset: 1, color: 'rgba(84, 112, 198, 0.1)' }
-            ]
-          }
-        }
-      }]
-    }
-    chart1.setOption(option1)
+// 更新图表数据
+const updateCharts = () => {
+  // 根据周期更新数据量趋势
+  const days = chartPeriod.value === '7d' ? 7 : chartPeriod.value === '30d' ? 30 : 90
+  const newXAxis = []
+  const newData = []
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    newXAxis.push(`${date.getMonth() + 1}-${date.getDate()}`)
+    newData.push(Math.floor(1000 + Math.random() * 1000))
   }
 
-  // 质量评分趋势图表
-  if (qualityTrendChart.value) {
-    const chart2 = echarts.init(qualityTrendChart.value)
-    const option2 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['12-01', '12-02', '12-03', '12-04', '12-05', '12-06', '12-07']
-      },
-      yAxis: { type: 'value', min: 70, max: 100 },
-      series: [{
-        name: '质量评分',
-        type: 'line',
-        data: [82, 85, 83, 87, 89, 86, 87],
-        smooth: true,
-        itemStyle: { color: '#91cc75' },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(145, 204, 117, 0.3)' },
-              { offset: 1, color: 'rgba(145, 204, 117, 0.1)' }
-            ]
-          }
-        }
-      }]
-    }
-    chart2.setOption(option2)
+  dataVolumeXAxis.value = newXAxis
+  dataVolumeData.value = newData
+
+
+  // 根据周期更新质量趋势数据
+  const qualityDays = qualityPeriod.value === '7d' ? 7 : qualityPeriod.value === '30d' ? 30 : 90
+  const newQualityXAxis = []
+  const newQualityData = []
+
+  for (let i = qualityDays - 1; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    newQualityXAxis.push(`${date.getMonth() + 1}-${date.getDate()}`)
+    newQualityData.push(Math.floor(80 + Math.random() * 15))
   }
+
+  qualityTrendXAxis.value = newQualityXAxis
+  qualityTrendData.value = newQualityData
 }
 
 // 快速导入
-const quickImport = () => {
-  ElMessage.info('快速导入功能')
+const quickImport = async () => {
+  try {
+    // 创建一个隐藏的文件输入元素
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.xlsx,.xls,.csv,.json'
+    input.onchange = async (event) => {
+      const file = event.target.files[0]
+      if (file) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('dataType', 'health_data')
+
+        try {
+          const response = await dataApi.importData(formData)
+          if (response.code === 200) {
+            ElMessage.success('数据导入成功')
+            loadOverviewData()
+          } else {
+            ElMessage.error(response.message || '导入失败')
+          }
+        } catch (error) {
+          ElMessage.error('导入失败，请检查文件格式')
+        }
+      }
+    }
+    input.click()
+  } catch (error) {
+    ElMessage.error('快速导入功能异常')
+  }
 }
 
 // 快速导出
-const quickExport = () => {
-  ElMessage.info('快速导出功能')
+const quickExport = async () => {
+  try {
+    const params = {
+      dataType: 'health_data',
+      format: 'xlsx',
+      dateRange: {
+        start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
+      }
+    }
+
+    const response = await dataApi.exportData(params)
+    if (response.code === 200) {
+      // 创建下载链接
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `health_data_export_${new Date().toISOString().split('T')[0]}.xlsx`
+      link.click()
+      window.URL.revokeObjectURL(url)
+      ElMessage.success('数据导出成功')
+    } else {
+      ElMessage.error(response.message || '导出失败')
+    }
+  } catch (error) {
+    ElMessage.error('导出失败，请稍后重试')
+  }
 }
 
 // 快速检查
-const quickCheck = () => {
-  ElMessage.info('快速质量检查功能')
+const quickCheck = async () => {
+  try {
+    const params = {
+      dataType: 'health_data',
+      checkType: 'comprehensive'
+    }
+
+    const response = await dataApi.checkDataQuality(params)
+    if (response.code === 200) {
+      ElMessage.success(`质量检查完成，评分：${response.data.score}`)
+      loadOverviewData()
+    } else {
+      ElMessage.error(response.message || '质量检查失败')
+    }
+  } catch (error) {
+    ElMessage.error('质量检查失败，请稍后重试')
+  }
 }
 
 // 查看报告
-const viewReport = () => {
-  ElMessage.info('查看质量报告功能')
+const viewReport = async () => {
+  try {
+    const response = await dataApi.getQualityReport()
+    if (response.code === 200) {
+      // 这里可以打开一个详细的报告页面或弹窗
+      ElMessage.success('报告加载成功')
+    } else {
+      ElMessage.error(response.message || '获取报告失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取报告失败，请稍后重试')
+  }
 }
 
 // 开始清洗
-const startCleaning = () => {
-  ElMessage.info('开始数据清洗功能')
+const startCleaning = async () => {
+  try {
+    const params = {
+      dataType: 'health_data',
+      cleaningRules: ['remove_duplicates', 'fill_missing', 'standardize_format']
+    }
+
+    const response = await dataApi.cleanData(params)
+    if (response.code === 200) {
+      ElMessage.success('数据清洗任务已启动')
+      loadOverviewData()
+    } else {
+      ElMessage.error(response.message || '启动清洗任务失败')
+    }
+  } catch (error) {
+    ElMessage.error('启动清洗任务失败，请稍后重试')
+  }
 }
 
 // 查看清洗规则
-const viewCleaningRules = () => {
-  ElMessage.info('查看清洗规则功能')
+const viewCleaningRules = async () => {
+  try {
+    const response = await dataApi.getCleaningRules()
+    if (response.code === 200) {
+      ElMessage.success('清洗规则加载成功')
+    } else {
+      ElMessage.error(response.message || '获取清洗规则失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取清洗规则失败，请稍后重试')
+  }
 }
 
 // 清洗历史
-const cleaningHistory = () => {
-  ElMessage.info('清洗历史功能')
+const cleaningHistory = async () => {
+  try {
+    const response = await dataApi.getCleaningHistory()
+    if (response.code === 200) {
+      ElMessage.success('清洗历史加载成功')
+    } else {
+      ElMessage.error(response.message || '获取清洗历史失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取清洗历史失败，请稍后重试')
+  }
 }
 
 // 标签管理
-const manageTag = () => {
-  ElMessage.info('标签管理功能')
+const manageTag = async () => {
+  try {
+    const response = await dataApi.getDataTags()
+    if (response.code === 200) {
+      ElMessage.success('标签数据加载成功')
+    } else {
+      ElMessage.error(response.message || '获取标签数据失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取标签数据失败，请稍后重试')
+  }
 }
 
 // 批量标记
-const batchTag = () => {
-  ElMessage.info('批量标记功能')
+const batchTag = async () => {
+  try {
+    const params = {
+      dataIds: [], // 这里应该是选中的数据ID数组
+      tags: ['health_data', 'verified']
+    }
+
+    const response = await dataApi.batchTagData(params)
+    if (response.code === 200) {
+      ElMessage.success('批量标记成功')
+      loadOverviewData()
+    } else {
+      ElMessage.error(response.message || '批量标记失败')
+    }
+  } catch (error) {
+    ElMessage.error('批量标记失败，请稍后重试')
+  }
 }
 
 // 标签统计
-const tagStatistics = () => {
-  ElMessage.info('标签统计功能')
+const tagStatistics = async () => {
+  try {
+    const response = await dataApi.getTagStatistics()
+    if (response.code === 200) {
+      ElMessage.success('标签统计加载成功')
+    } else {
+      ElMessage.error(response.message || '获取标签统计失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取标签统计失败，请稍后重试')
+  }
+}
+
+// 加载概览数据
+const loadOverviewData = async () => {
+  try {
+    // 获取数据概览统计
+    const overviewResponse = await dataApi.getDataOverview()
+    if (overviewResponse.code === 200) {
+      const data = overviewResponse.data
+      overviewData.totalRecords = data.totalRecords || 0
+      overviewData.qualityScore = data.qualityScore || 0
+      overviewData.storageUsed = data.storageUsed || 0
+      overviewData.storageRemaining = data.storageRemaining || 0
+      overviewData.activeTasks = data.activeTasks || 0
+      overviewData.completedToday = data.completedToday || 0
+      overviewData.recordGrowth = data.recordGrowth || 0
+      overviewData.qualityImprovement = data.qualityImprovement || 0
+    }
+
+    // 获取模块统计数据
+    const moduleResponse = await dataApi.getModuleStatistics()
+    if (moduleResponse.code === 200) {
+      const data = moduleResponse.data
+
+      // 更新导入导出统计
+      if (data.importExport) {
+        moduleStats.importExport.totalTasks = data.importExport.totalTasks || 0
+        moduleStats.importExport.successRate = data.importExport.successRate || 0
+        moduleStats.importExport.dataVolume = data.importExport.dataVolume || 0
+      }
+
+      // 更新质量检查统计
+      if (data.qualityCheck) {
+        moduleStats.qualityCheck.lastScore = data.qualityCheck.lastScore || 0
+        moduleStats.qualityCheck.issuesFound = data.qualityCheck.issuesFound || 0
+        moduleStats.qualityCheck.fixedIssues = data.qualityCheck.fixedIssues || 0
+      }
+
+      // 更新数据清洗统计
+      if (data.dataCleaning) {
+        moduleStats.dataCleaning.cleanedRecords = data.dataCleaning.cleanedRecords || 0
+        moduleStats.dataCleaning.duplicatesRemoved = data.dataCleaning.duplicatesRemoved || 0
+        moduleStats.dataCleaning.missingFilled = data.dataCleaning.missingFilled || 0
+      }
+
+      // 更新标签管理统计
+      if (data.tagManagement) {
+        moduleStats.tagManagement.totalTags = data.tagManagement.totalTags || 0
+        moduleStats.tagManagement.taggedRecords = data.tagManagement.taggedRecords || 0
+        moduleStats.tagManagement.categories = data.tagManagement.categories || 0
+      }
+    }
+
+    // 获取最近活动
+    const activityResponse = await dataApi.getRecentActivities()
+    if (activityResponse.code === 200) {
+      recentActivities.value = activityResponse.data || []
+    }
+  } catch (error) {
+    console.error('加载概览数据失败:', error)
+    ElMessage.error('加载数据失败，请检查后端服务是否正常运行')
+  }
 }
 
 // 查看全部活动
@@ -554,7 +753,11 @@ const viewAllActivities = () => {
 }
 
 // 刷新数据
-const refreshData = () => {
+const refreshData = async () => {
+  await loadOverviewData()
+  updateCharts()
+  ElMessage.success('数据已刷新')
+}
   loadData()
 }
 
@@ -562,10 +765,7 @@ const refreshData = () => {
 const loadData = async () => {
   try {
     loading.value = true
-
-    // 模拟API调用
-    // 这里可以调用实际的API获取数据
-
+    await loadOverviewData()
   } catch (error) {
     ElMessage.error('加载数据失败')
     console.error('加载数据失败:', error)
@@ -576,17 +776,14 @@ const loadData = async () => {
 
 // 监听图表周期变化
 watch([chartPeriod, qualityPeriod], () => {
-  nextTick(() => {
-    initCharts()
-  })
+  updateCharts()
 })
 
 // 生命周期
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
   loadData()
-  nextTick(() => {
-    initCharts()
-  })
+  updateCharts()
 })
 </script>
 

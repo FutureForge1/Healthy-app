@@ -136,7 +136,29 @@
                 <el-button size="small" :type="ageChartType === 'bar' ? 'primary' : ''" @click="ageChartType = 'bar'">柱图</el-button>
               </el-button-group>
             </div>
-            <div ref="ageChartRef" class="chart"></div>
+
+            <!-- 使用新的图表组件 -->
+            <PieChart
+              v-if="ageChartType === 'pie'"
+              :data="ageChartData"
+              title=""
+              height="300px"
+              :is-donut="true"
+              :inner-radius="'40%'"
+              :radius="'70%'"
+              :show-percentage="true"
+              class="chart"
+            />
+            <BarChart
+              v-else
+              :data="ageChartData.map(item => item.value)"
+              :x-axis-data="ageChartData.map(item => item.name)"
+              title=""
+              height="300px"
+              :colors="ageChartData.map(item => item.color)"
+              :y-axis-formatter="(value) => `${value}%`"
+              class="chart"
+            />
           </div>
         </el-col>
         
@@ -146,7 +168,18 @@
             <div class="chart-header">
               <h4>性别比例分布</h4>
             </div>
-            <div ref="genderChartRef" class="chart"></div>
+
+            <!-- 使用新的饼图组件 -->
+            <PieChart
+              :data="genderChartData"
+              title=""
+              height="300px"
+              :is-donut="true"
+              :inner-radius="'50%'"
+              :radius="'70%'"
+              :show-percentage="true"
+              class="chart"
+            />
           </div>
         </el-col>
       </el-row>
@@ -158,12 +191,25 @@
             <div class="chart-header">
               <h4>人口变化趋势</h4>
               <el-radio-group v-model="trendPeriod" @change="updateTrendChart">
-                <el-radio-button label="5年">近5年</el-radio-button>
-                <el-radio-button label="10年">近10年</el-radio-button>
-                <el-radio-button label="20年">近20年</el-radio-button>
+                <el-radio-button value="5年">近5年</el-radio-button>
+                <el-radio-button value="10年">近10年</el-radio-button>
+                <el-radio-button value="20年">近20年</el-radio-button>
               </el-radio-group>
             </div>
-            <div ref="trendChartRef" class="chart trend-chart"></div>
+
+            <!-- 使用新的折线图组件 -->
+            <LineChart
+              :data="trendChartData"
+              :x-axis-data="trendXAxisData"
+              title=""
+              height="400px"
+              :smooth="true"
+              :show-area="true"
+              :area-opacity="0.3"
+              :colors="['#5470c6']"
+              :y-axis-formatter="(value) => `${value}万`"
+              class="chart trend-chart"
+            />
           </div>
         </el-col>
       </el-row>
@@ -255,22 +301,12 @@ import {
   ArrowDown,
   View
 } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import { BarChart, LineChart, PieChart } from '@/components/charts'
 import { statisticsApi } from '@/api/statistics'
 
 // 响应式数据
 const loading = ref(false)
 const tableLoading = ref(false)
-
-// 图表引用
-const ageChartRef = ref(null)
-const genderChartRef = ref(null)
-const trendChartRef = ref(null)
-
-// 图表实例
-let ageChart = null
-let genderChart = null
-let trendChart = null
 
 // 筛选条件
 const filters = reactive({
@@ -282,6 +318,21 @@ const filters = reactive({
 // 图表类型
 const ageChartType = ref('pie')
 const trendPeriod = ref('5年')
+
+// 图表数据
+const ageChartData = ref([
+  { name: '0-14岁', value: 13.2, color: '#5470c6' },
+  { name: '15-64岁', value: 72.5, color: '#91cc75' },
+  { name: '65岁以上', value: 14.3, color: '#fac858' }
+])
+
+const genderChartData = ref([
+  { name: '男性', value: 10756000, color: '#5470c6' },
+  { name: '女性', value: 10436000, color: '#ee6666' }
+])
+
+const trendChartData = ref([])
+const trendXAxisData = ref([])
 
 // 概览数据
 const overviewData = reactive({
@@ -340,222 +391,38 @@ const formatNumber = (num) => {
   return num.toLocaleString()
 }
 
-// 初始化年龄结构图表
-const initAgeChart = () => {
-  if (!ageChartRef.value) return
-
-  ageChart = echarts.init(ageChartRef.value)
-  updateAgeChart()
-}
-
-// 更新年龄结构图表
+// 年龄图表数据更新（现在只需要更新响应式数据）
 const updateAgeChart = () => {
-  if (!ageChart) return
+  // 数据已经在 ageChartData 中定义，组件会自动响应变化
+}
 
-  const ageData = [
-    { name: '0-14岁', value: 13.2, color: '#5470c6' },
-    { name: '15-64岁', value: 72.5, color: '#91cc75' },
-    { name: '65岁以上', value: 14.3, color: '#fac858' }
+// 性别图表数据更新（现在只需要更新响应式数据）
+const updateGenderChart = () => {
+  // 更新性别图表数据
+  genderChartData.value = [
+    { name: '男性', value: overviewData.maleRatio, color: '#5470c6' },
+    { name: '女性', value: overviewData.femaleRatio, color: '#ee6666' }
   ]
-
-  let option
-
-  if (ageChartType.value === 'pie') {
-    option = {
-      tooltip: {
-        trigger: 'item',
-        formatter: '{a} <br/>{b}: {c}% ({d}%)'
-      },
-      legend: {
-        orient: 'vertical',
-        left: 'left'
-      },
-      series: [{
-        name: '年龄结构',
-        type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        itemStyle: {
-          borderRadius: 10,
-          borderColor: '#fff',
-          borderWidth: 2
-        },
-        label: {
-          show: false,
-          position: 'center'
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: '18',
-            fontWeight: 'bold'
-          }
-        },
-        labelLine: {
-          show: false
-        },
-        data: ageData.map(item => ({
-          ...item,
-          itemStyle: { color: item.color }
-        }))
-      }]
-    }
-  } else {
-    option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow'
-        }
-      },
-      xAxis: {
-        type: 'category',
-        data: ageData.map(item => item.name)
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: '{value}%'
-        }
-      },
-      series: [{
-        name: '占比',
-        type: 'bar',
-        data: ageData.map(item => ({
-          value: item.value,
-          itemStyle: { color: item.color }
-        })),
-        barWidth: '60%'
-      }]
-    }
-  }
-
-  ageChart.setOption(option)
 }
 
-// 初始化性别比例图表
-const initGenderChart = () => {
-  if (!genderChartRef.value) return
-
-  genderChart = echarts.init(genderChartRef.value)
-
-  const option = {
-    tooltip: {
-      trigger: 'item'
-    },
-    series: [{
-      name: '性别比例',
-      type: 'pie',
-      radius: ['50%', '70%'],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 10,
-        borderColor: '#fff',
-        borderWidth: 2
-      },
-      label: {
-        show: true,
-        position: 'outside',
-        formatter: '{b}: {c}%'
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: '16',
-          fontWeight: 'bold'
-        }
-      },
-      data: [
-        {
-          value: overviewData.maleRatio,
-          name: '男性',
-          itemStyle: { color: '#5470c6' }
-        },
-        {
-          value: overviewData.femaleRatio,
-          name: '女性',
-          itemStyle: { color: '#ee6666' }
-        }
-      ]
-    }]
-  }
-
-  genderChart.setOption(option)
-}
-
-// 初始化趋势图表
-const initTrendChart = () => {
-  if (!trendChartRef.value) return
-
-  trendChart = echarts.init(trendChartRef.value)
-  updateTrendChart()
-}
-
-// 更新趋势图表
+// 更新趋势图表数据
 const updateTrendChart = () => {
-  if (!trendChart) return
-
   // 模拟趋势数据
   const years = []
   const totalData = []
-  const maleData = []
-  const femaleData = []
 
   const currentYear = new Date().getFullYear()
   const yearCount = trendPeriod.value === '5年' ? 5 : trendPeriod.value === '10年' ? 10 : 20
 
   for (let i = yearCount - 1; i >= 0; i--) {
     years.push(currentYear - i)
-    totalData.push(Math.floor(20000000 + Math.random() * 2000000))
-    maleData.push(Math.floor(10000000 + Math.random() * 1000000))
-    femaleData.push(Math.floor(10000000 + Math.random() * 1000000))
+    // 转换为万人单位
+    totalData.push(Math.floor(2000 + Math.random() * 200))
   }
 
-  const option = {
-    tooltip: {
-      trigger: 'axis'
-    },
-    legend: {
-      data: ['总人口', '男性', '女性']
-    },
-    xAxis: {
-      type: 'category',
-      data: years
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: {
-        formatter: function(value) {
-          return (value / 10000).toFixed(0) + '万'
-        }
-      }
-    },
-    series: [
-      {
-        name: '总人口',
-        type: 'line',
-        data: totalData,
-        smooth: true,
-        itemStyle: { color: '#5470c6' }
-      },
-      {
-        name: '男性',
-        type: 'line',
-        data: maleData,
-        smooth: true,
-        itemStyle: { color: '#91cc75' }
-      },
-      {
-        name: '女性',
-        type: 'line',
-        data: femaleData,
-        smooth: true,
-        itemStyle: { color: '#ee6666' }
-      }
-    ]
-  }
-
-  trendChart.setOption(option)
+  // 更新图表数据
+  trendXAxisData.value = years
+  trendChartData.value = totalData
 }
 
 // 筛选条件变化
@@ -633,10 +500,9 @@ watch(ageChartType, () => {
 
 // 生命周期
 onMounted(async () => {
-  await nextTick()
-  initAgeChart()
-  initGenderChart()
-  initTrendChart()
+  // 初始化图表数据
+  updateGenderChart()
+  updateTrendChart()
   loadData()
 })
 </script>

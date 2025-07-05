@@ -129,11 +129,11 @@
         </el-form-item>
         <el-form-item label="检查类型">
           <el-checkbox-group v-model="checkConfig.checkTypes">
-            <el-checkbox label="completeness">完整性检查</el-checkbox>
-            <el-checkbox label="accuracy">准确性检查</el-checkbox>
-            <el-checkbox label="consistency">一致性检查</el-checkbox>
-            <el-checkbox label="validity">有效性检查</el-checkbox>
-            <el-checkbox label="uniqueness">唯一性检查</el-checkbox>
+            <el-checkbox value="completeness">完整性检查</el-checkbox>
+            <el-checkbox value="accuracy">准确性检查</el-checkbox>
+            <el-checkbox value="consistency">一致性检查</el-checkbox>
+            <el-checkbox value="validity">有效性检查</el-checkbox>
+            <el-checkbox value="uniqueness">唯一性检查</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="时间范围">
@@ -169,13 +169,29 @@
               <el-col :span="12">
                 <div class="chart-container">
                   <h5>问题分布</h5>
-                  <div ref="problemDistributionChart" class="chart"></div>
+                  <!-- 使用新的饼图组件 -->
+                  <PieChart
+                    :data="problemDistributionData"
+                    title=""
+                    height="300px"
+                    :radius="'70%'"
+                    :show-percentage="true"
+                    class="chart"
+                  />
                 </div>
               </el-col>
               <el-col :span="12">
                 <div class="chart-container">
                   <h5>严重程度分布</h5>
-                  <div ref="severityChart" class="chart"></div>
+                  <!-- 使用新的柱状图组件 -->
+                  <BarChart
+                    :data="severityData"
+                    :x-axis-data="severityXAxis"
+                    title=""
+                    height="300px"
+                    :colors="['#ee6666', '#fac858', '#91cc75']"
+                    class="chart"
+                  />
                 </div>
               </el-col>
             </el-row>
@@ -345,20 +361,20 @@
       <el-form :model="cleanConfig" label-width="120px">
         <el-form-item label="清洗规则">
           <el-checkbox-group v-model="cleanConfig.rules">
-            <el-checkbox label="removeDuplicates">去除重复数据</el-checkbox>
-            <el-checkbox label="fillMissing">填充缺失值</el-checkbox>
-            <el-checkbox label="standardizeFormat">标准化格式</el-checkbox>
-            <el-checkbox label="validateRange">范围验证</el-checkbox>
-            <el-checkbox label="correctTypos">纠正拼写错误</el-checkbox>
+            <el-checkbox value="removeDuplicates">去除重复数据</el-checkbox>
+            <el-checkbox value="fillMissing">填充缺失值</el-checkbox>
+            <el-checkbox value="standardizeFormat">标准化格式</el-checkbox>
+            <el-checkbox value="validateRange">范围验证</el-checkbox>
+            <el-checkbox value="correctTypos">纠正拼写错误</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="缺失值处理">
           <el-radio-group v-model="cleanConfig.missingValueStrategy">
-            <el-radio label="delete">删除记录</el-radio>
-            <el-radio label="mean">均值填充</el-radio>
-            <el-radio label="median">中位数填充</el-radio>
-            <el-radio label="mode">众数填充</el-radio>
-            <el-radio label="custom">自定义值</el-radio>
+            <el-radio value="delete">删除记录</el-radio>
+            <el-radio value="mean">均值填充</el-radio>
+            <el-radio value="median">中位数填充</el-radio>
+            <el-radio value="mode">众数填充</el-radio>
+            <el-radio value="custom">自定义值</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="cleanConfig.missingValueStrategy === 'custom'" label="自定义值">
@@ -384,7 +400,7 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import * as echarts from 'echarts'
+import { PieChart, BarChart } from '@/components/charts'
 import {
   Search,
   Tools,
@@ -406,9 +422,17 @@ const cleanDialogVisible = ref(false)
 const activeTab = ref('summary')
 const activeCollapse = ref(['completeness', 'accuracy', 'consistency'])
 
-// 图表引用
-const problemDistributionChart = ref(null)
-const severityChart = ref(null)
+// 图表数据
+const problemDistributionData = ref([
+  { name: '缺失值', value: 1250, color: '#5470c6' },
+  { name: '格式错误', value: 856, color: '#91cc75' },
+  { name: '重复数据', value: 432, color: '#fac858' },
+  { name: '范围错误', value: 392, color: '#ee6666' },
+  { name: '逻辑错误', value: 278, color: '#73c0de' }
+])
+
+const severityData = ref([432, 1248, 1592])
+const severityXAxis = ref(['低', '中', '高'])
 
 // 检查配置
 const checkConfig = reactive({
@@ -621,58 +645,9 @@ const formatDateTime = (dateString) => {
   return new Date(dateString).toLocaleString('zh-CN')
 }
 
-// 初始化图表
-const initCharts = () => {
-  // 问题分布图表
-  if (problemDistributionChart.value) {
-    const chart1 = echarts.init(problemDistributionChart.value)
-    const option1 = {
-      tooltip: { trigger: 'item' },
-      series: [{
-        type: 'pie',
-        radius: '70%',
-        data: [
-          { value: 1250, name: '缺失值' },
-          { value: 856, name: '格式错误' },
-          { value: 432, name: '重复数据' },
-          { value: 392, name: '范围错误' },
-          { value: 280, name: '一致性错误' }
-        ],
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }]
-    }
-    chart1.setOption(option1)
-  }
-
-  // 严重程度分布图表
-  if (severityChart.value) {
-    const chart2 = echarts.init(severityChart.value)
-    const option2 = {
-      tooltip: { trigger: 'axis' },
-      xAxis: {
-        type: 'category',
-        data: ['低', '中', '高']
-      },
-      yAxis: { type: 'value' },
-      series: [{
-        type: 'bar',
-        data: [432, 1248, 1592],
-        itemStyle: {
-          color: function(params) {
-            const colors = ['#67c23a', '#e6a23c', '#f56c6c']
-            return colors[params.dataIndex]
-          }
-        }
-      }]
-    }
-    chart2.setOption(option2)
-  }
+// 更新图表数据（现在只需要更新响应式数据）
+const updateCharts = () => {
+  // 数据已经在响应式变量中定义，组件会自动响应变化
 }
 
 // 开始质量检查
@@ -810,9 +785,7 @@ const handleCleanDialogClose = (done) => {
 // 生命周期
 onMounted(() => {
   loadData()
-  nextTick(() => {
-    initCharts()
-  })
+  updateCharts()
 })
 </script>
 
