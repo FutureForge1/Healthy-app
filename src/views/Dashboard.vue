@@ -188,7 +188,6 @@ import { gsap } from 'gsap'
 import * as echarts from 'echarts'
 import { ElMessage, ElLoading } from 'element-plus'
 import dashboardAPI from '@/api/dashboard'
-import { testDashboardAPIs, generateMockData } from '@/utils/dashboardTest'
 import {
   User,
   DataAnalysis,
@@ -364,49 +363,7 @@ const getNotificationType = (level) => {
   return typeMap[level] || 'info'
 }
 
-// 测试 API 连接（开发模式）
-const testAPIConnection = async () => {
-  if (import.meta.env.DEV) {
-    console.log('🔧 开发模式 - 测试 Dashboard API 连接')
-    try {
-      const results = await testDashboardAPIs()
 
-      if (results.failed.length === 0) {
-        ElMessage.success(`API 测试成功！所有 ${results.total} 个接口正常`)
-      } else {
-        ElMessage.warning(`API 测试完成：${results.success.length}/${results.total} 个接口正常`)
-        console.log('使用模拟数据作为后备方案')
-
-        // 使用模拟数据
-        const mockData = generateMockData()
-        dashboardStats.value = mockData.dashboardOverview
-        chartData.value.populationTrend = mockData.populationTrend
-        chartData.value.institutionDistribution = mockData.institutionDistribution
-        recentActivities.value = mockData.recentActivities.map(item => ({
-          id: item.id,
-          time: formatTime(item.createTime),
-          content: item.description
-        }))
-        notifications.value = mockData.notifications.map(item => ({
-          id: item.id,
-          type: getNotificationType(item.level),
-          title: item.title,
-          time: formatTime(item.createTime),
-          read: item.isRead
-        }))
-
-        // 重新初始化图表
-        setTimeout(() => {
-          initPopulationChart()
-          initInstitutionChart()
-        }, 100)
-      }
-    } catch (error) {
-      console.error('API 测试失败:', error)
-      ElMessage.error('API 测试失败，请检查网络连接')
-    }
-  }
-}
 
 // 获取通知图标
 const getNotificationIcon = (type) => {

@@ -1,5 +1,11 @@
 <template>
   <div class="login-container">
+    <!-- 加载过渡动画 -->
+    <LoadingTransition
+      :visible="showLoadingTransition"
+      @complete="handleTransitionComplete"
+    />
+
     <!-- 背景动画元素 -->
     <div class="background-animation">
       <div class="floating-orb orb-1"></div>
@@ -150,6 +156,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import LoadingTransition from '../components/LoadingTransition.vue'
 
 // 注册GSAP插件
 gsap.registerPlugin(ScrollTrigger)
@@ -159,6 +166,9 @@ const userStore = useUserStore()
 
 // 加载状态
 const loading = ref(false)
+
+// 加载过渡动画状态
+const showLoadingTransition = ref(false)
 
 // 动画统计数据
 const animatedStats = reactive({
@@ -462,14 +472,21 @@ const handleLogin = async () => {
     const result = await userStore.loginAction(loginForm)
 
     if (result.success) {
-      // 登录成功，跳转到仪表板
-      router.push('/app/dashboard')
+      // 登录成功，显示加载过渡动画
+      loading.value = false
+      showLoadingTransition.value = true
     }
   } catch (error) {
     console.error('登录失败:', error)
-  } finally {
     loading.value = false
   }
+}
+
+// 处理过渡动画完成
+const handleTransitionComplete = () => {
+  showLoadingTransition.value = false
+  // 跳转到仪表板
+  router.push('/app/dashboard')
 }
 
 // 跳转到注册页面

@@ -139,17 +139,17 @@
             </div>
           </div>
           <div class="chart-content">
-            <PieChart 
+            <PieChart
               v-if="structureChartType === 'pie'"
               :data="structureChartData"
-              :height="300"
+              height="100%"
               :show-legend="true"
               :donut="true"
             />
-            <BarChart 
+            <BarChart
               v-else
               :data="structureChartData"
-              :height="300"
+              height="100%"
               :show-legend="false"
               :color-scheme="['#5470c6', '#91cc75', '#fac858', '#ee6666']"
             />
@@ -169,10 +169,10 @@
             </div>
           </div>
           <div class="chart-content">
-            <LineChart 
+            <LineChart
               :data="trendChartData"
               :x-axis-data="trendXAxisData"
-              :height="300"
+              height="100%"
               :smooth="true"
               :area="true"
               :color-scheme="['#5470c6', '#91cc75', '#fac858']"
@@ -210,9 +210,9 @@
             </div>
           </div>
           <div class="chart-content">
-            <BarChart 
+            <BarChart
               :data="comparisonChartData"
-              :height="400"
+              height="100%"
               :show-legend="true"
               :horizontal="comparisonType === 'hospital'"
               :color-scheme="['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de']"

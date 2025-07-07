@@ -28,6 +28,11 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  // 系列名称
+  seriesNames: {
+    type: Array,
+    default: () => []
+  },
   // 图表标题
   title: {
     type: String,
@@ -97,6 +102,51 @@ const props = defineProps({
   yAxisFormatter: {
     type: Function,
     default: (value) => value
+  },
+  // Y轴名称
+  yAxisName: {
+    type: String,
+    default: ''
+  },
+  // 右Y轴名称
+  rightYAxisName: {
+    type: String,
+    default: ''
+  },
+  // 右Y轴格式化函数
+  rightYAxisFormatter: {
+    type: Function,
+    default: (value) => value
+  },
+  // 是否启用双Y轴
+  dualYAxis: {
+    type: Boolean,
+    default: false
+  },
+  // 右Y轴系列索引数组
+  rightYAxisSeriesIndex: {
+    type: Array,
+    default: () => []
+  },
+  // 左Y轴最小值
+  yAxisMin: {
+    type: [Number, String],
+    default: null
+  },
+  // 左Y轴最大值
+  yAxisMax: {
+    type: [Number, String],
+    default: null
+  },
+  // 右Y轴最小值
+  rightYAxisMin: {
+    type: [Number, String],
+    default: null
+  },
+  // 右Y轴最大值
+  rightYAxisMax: {
+    type: [Number, String],
+    default: null
   },
   // 工具提示格式化函数
   tooltipFormatter: {
@@ -169,8 +219,55 @@ const chartOption = computed(() => {
       }
     },
     
-    yAxis: {
+    yAxis: props.dualYAxis ? [
+      {
+        type: 'value',
+        name: props.yAxisName,
+        position: 'left',
+        min: props.yAxisMin,
+        max: props.yAxisMax,
+        axisLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+        axisLabel: {
+          color: '#666',
+          formatter: props.yAxisFormatter
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#f0f0f0',
+            type: 'dashed'
+          }
+        }
+      },
+      {
+        type: 'value',
+        name: props.rightYAxisName,
+        position: 'right',
+        min: props.rightYAxisMin,
+        max: props.rightYAxisMax,
+        axisLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+        axisLabel: {
+          color: '#666',
+          formatter: props.rightYAxisFormatter
+        },
+        splitLine: {
+          show: false
+        }
+      }
+    ] : {
       type: 'value',
+      name: props.yAxisName,
+      min: props.yAxisMin,
+      max: props.yAxisMax,
       axisLine: {
         show: false
       },
@@ -226,7 +323,7 @@ const generateSeries = () => {
 
   // 如果是多系列数据
   return props.data.map((seriesData, index) => ({
-    name: `系列${index + 1}`,
+    name: props.seriesNames[index] || `系列${index + 1}`,
     type: 'line',
     data: seriesData,
     smooth: props.smooth,
@@ -240,7 +337,9 @@ const generateSeries = () => {
     } : undefined,
     emphasis: {
       focus: 'series'
-    }
+    },
+    // 如果启用双Y轴，设置对应的Y轴索引
+    yAxisIndex: props.dualYAxis && props.rightYAxisSeriesIndex.includes(index) ? 1 : 0
   }))
 }
 

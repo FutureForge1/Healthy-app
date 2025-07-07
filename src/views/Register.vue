@@ -283,17 +283,20 @@
                 </div>
 
                 <div class="verification-input">
-                  <el-input
-                    v-model="emailVerificationCode"
-                    placeholder="请输入6位验证码"
-                    size="large"
-                    maxlength="6"
-                    @keyup.enter="verifyEmailCode"
-                  >
-                    <template #prefix>
-                      <el-icon><Key /></el-icon>
-                    </template>
-                  </el-input>
+                  <div class="code-input-container">
+                    <input
+                      v-for="(digit, index) in codeDigits"
+                      :key="index"
+                      :ref="el => setCodeInputRef(el, index)"
+                      v-model="codeDigits[index]"
+                      type="text"
+                      maxlength="1"
+                      class="code-digit-input"
+                      @input="handleCodeInput(index, $event)"
+                      @keydown="handleCodeKeydown(index, $event)"
+                      @paste="handleCodePaste($event)"
+                    />
+                  </div>
                 </div>
 
                 <div class="verification-actions">
@@ -321,7 +324,7 @@
                       size="large"
                       @click="verifyEmailCode"
                       :loading="verifyingEmail"
-                      :disabled="!emailVerificationCode || emailVerificationCode.length !== 6"
+                      :disabled="emailVerificationCode.length !== 6"
                     >
                       验证并注册
                     </el-button>
@@ -442,11 +445,19 @@ const resendingCode = ref(false)
 const verifyingEmail = ref(false)
 const emailCodeSent = ref(false) // 标记是否已发送验证码
 
+// 验证码输入框相关
+const codeDigits = ref(['', '', '', '', '', ''])
+const codeInputRefs = ref([])
+
+// 设置输入框引用
+const setCodeInputRef = (el, index) => {
+  if (el) {
+    codeInputRefs.value[index] = el
+  }
+}
+
 // 加载状态
 const submittingBasicInfo = ref(false)
-
-// 开发环境标识
-const isDev = import.meta.env.DEV
 
 
 
@@ -662,7 +673,84 @@ const goBackToBasicInfo = () => {
   // 重置邮箱验证相关状态
   emailCodeSent.value = false
   emailVerificationCode.value = ''
+  codeDigits.value = ['', '', '', '', '', '']
   resendCountdown.value = 0
+}
+
+// 处理验证码输入
+const handleCodeInput = (index, event) => {
+  const value = event.target.value
+
+  // 只允许数字
+  if (!/^\d*$/.test(value)) {
+    codeDigits.value[index] = ''
+    return
+  }
+
+  codeDigits.value[index] = value
+
+  // 更新完整的验证码
+  emailVerificationCode.value = codeDigits.value.join('')
+
+  // 自动跳转到下一个输入框
+  if (value && index < 5) {
+    const nextInput = codeInputRefs.value[index + 1]
+    if (nextInput) {
+      nextInput.focus()
+    }
+  }
+
+  // 如果输入完成，自动验证
+  if (emailVerificationCode.value.length === 6) {
+    // 可以选择自动验证或者等用户点击按钮
+    // verifyEmailCode()
+  }
+}
+
+// 处理键盘事件
+const handleCodeKeydown = (index, event) => {
+  // 退格键处理
+  if (event.key === 'Backspace' && !codeDigits.value[index] && index > 0) {
+    const prevInput = codeInputRefs.value[index - 1]
+    if (prevInput) {
+      prevInput.focus()
+      codeDigits.value[index - 1] = ''
+      emailVerificationCode.value = codeDigits.value.join('')
+    }
+  }
+
+  // 左右箭头键处理
+  if (event.key === 'ArrowLeft' && index > 0) {
+    codeInputRefs.value[index - 1].focus()
+  }
+  if (event.key === 'ArrowRight' && index < 5) {
+    codeInputRefs.value[index + 1].focus()
+  }
+
+  // 回车键验证
+  if (event.key === 'Enter' && emailVerificationCode.value.length === 6) {
+    verifyEmailCode()
+  }
+}
+
+// 处理粘贴事件
+const handleCodePaste = (event) => {
+  event.preventDefault()
+  const pastedData = event.clipboardData.getData('text')
+  const digits = pastedData.replace(/\D/g, '').slice(0, 6).split('')
+
+  // 填充验证码
+  for (let i = 0; i < 6; i++) {
+    codeDigits.value[i] = digits[i] || ''
+  }
+
+  emailVerificationCode.value = codeDigits.value.join('')
+
+  // 聚焦到最后一个有值的输入框
+  const lastFilledIndex = digits.length - 1
+  if (lastFilledIndex >= 0 && lastFilledIndex < 6) {
+    codeInputRefs.value[lastFilledIndex].focus()
+  }
 }
 
 // 发送邮箱验证码
@@ -737,28 +825,7 @@ const sendEmailVerificationCode = async () => {
       ElMessage.error(`发送验证码失败: ${error.message}`)
     }
 
-    // 如果是超时或网络问题，提供跳过选项（仅用于开发测试）
-    if (error.code === 'ECONNABORTED' || error.request) {
-      ElMessage({
-        message: '如果是开发环境，您可以暂时跳过邮箱验证直接进入下一步',
-        type: 'warning',
-        duration: 5000,
-        showClose: true
-      })
 
-      // 开发环境下提供跳过选项
-      if (import.meta.env.DEV) {
-        setTimeout(() => {
-          ElMessage({
-            message: '开发模式：点击确定跳过邮箱验证',
-            type: 'info',
-            duration: 0,
-            showClose: true,
-            customClass: 'dev-skip-message'
-          })
-        }, 2000)
-      }
-    }
   } finally {
     submittingBasicInfo.value = false
   }
@@ -1356,6 +1423,61 @@ onUnmounted(() => {
 .email-desc {
   font-size: 14px;
   color: #7f8c8d;
+}
+
+/* 验证码输入框 */
+.verification-input {
+  margin: 30px 0;
+}
+
+.code-input-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.code-digit-input {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.code-digit-input:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.code-digit-input:not(:placeholder-shown) {
+  border-color: #67c23a;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.code-digit-input::placeholder {
+  color: #c0c4cc;
+  font-weight: 400;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .code-digit-input {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .code-input-container {
+    gap: 8px;
+  }
 }
 
 .verification-actions {

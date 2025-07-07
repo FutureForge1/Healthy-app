@@ -115,8 +115,12 @@ const formatValue = (val) => {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   border: 1px solid rgba(148, 163, 184, 0.1);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 10px 25px rgba(0, 0, 0, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.05),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modern-card:before {
@@ -131,12 +135,17 @@ const formatValue = (val) => {
   border-radius: 32px;
   transform: scale(1);
   transform-origin: 50% 50%;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modern-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 40px 80px rgba(0, 0, 0, 0.15),
+    0 25px 50px rgba(0, 0, 0, 0.12),
+    0 15px 30px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .modern-card:hover:before {
@@ -144,18 +153,19 @@ const formatValue = (val) => {
 }
 
 .modern-card:hover .small-desc {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   color: rgba(255, 255, 255, 0.9);
 }
 
 .modern-card:hover .card-title {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   color: #ffffff;
 }
 
 .modern-card:hover .go-arrow {
   color: rgba(255, 255, 255, 0.9);
   transform: scale(1.1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-title {
@@ -187,7 +197,7 @@ const formatValue = (val) => {
   right: 0;
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   border-radius: 0 20px 0 45px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modern-card:hover .go-corner {
@@ -198,17 +208,35 @@ const formatValue = (val) => {
 .go-arrow {
   color: white;
   font-size: 1.4em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 卡片主题配色 */
 .card-primary {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-left: 4px solid #0ea5e9;
+  border-left: 6px solid #0ea5e9;
+  box-shadow:
+    0 20px 40px rgba(14, 165, 233, 0.15),
+    0 10px 25px rgba(14, 165, 233, 0.1),
+    0 4px 10px rgba(14, 165, 233, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.card-primary:hover {
+  box-shadow:
+    0 40px 80px rgba(14, 165, 233, 0.25),
+    0 25px 50px rgba(14, 165, 233, 0.18),
+    0 15px 30px rgba(14, 165, 233, 0.12),
+    0 8px 16px rgba(14, 165, 233, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .card-primary:before {
   background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  bottom: -16px;
+  left: -16px;
+  top: auto;
+  right: auto;
 }
 
 .card-primary .go-corner {
@@ -217,7 +245,21 @@ const formatValue = (val) => {
 
 .card-success {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border-left: 4px solid #22c55e;
+  border-left: 6px solid #22c55e;
+  box-shadow:
+    0 20px 40px rgba(34, 197, 94, 0.15),
+    0 10px 25px rgba(34, 197, 94, 0.1),
+    0 4px 10px rgba(34, 197, 94, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.card-success:hover {
+  box-shadow:
+    0 40px 80px rgba(34, 197, 94, 0.25),
+    0 25px 50px rgba(34, 197, 94, 0.18),
+    0 15px 30px rgba(34, 197, 94, 0.12),
+    0 8px 16px rgba(34, 197, 94, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .card-success:before {
@@ -230,7 +272,21 @@ const formatValue = (val) => {
 
 .card-warning {
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border-left: 4px solid #f59e0b;
+  border-left: 6px solid #f59e0b;
+  box-shadow:
+    0 20px 40px rgba(245, 158, 11, 0.15),
+    0 10px 25px rgba(245, 158, 11, 0.1),
+    0 4px 10px rgba(245, 158, 11, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.card-warning:hover {
+  box-shadow:
+    0 40px 80px rgba(245, 158, 11, 0.25),
+    0 25px 50px rgba(245, 158, 11, 0.18),
+    0 15px 30px rgba(245, 158, 11, 0.12),
+    0 8px 16px rgba(245, 158, 11, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .card-warning:before {
@@ -243,7 +299,21 @@ const formatValue = (val) => {
 
 .card-info {
   background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%);
-  border-left: 4px solid #a855f7;
+  border-left: 6px solid #a855f7;
+  box-shadow:
+    0 20px 40px rgba(168, 85, 247, 0.15),
+    0 10px 25px rgba(168, 85, 247, 0.1),
+    0 4px 10px rgba(168, 85, 247, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.card-info:hover {
+  box-shadow:
+    0 40px 80px rgba(168, 85, 247, 0.25),
+    0 25px 50px rgba(168, 85, 247, 0.18),
+    0 15px 30px rgba(168, 85, 247, 0.12),
+    0 8px 16px rgba(168, 85, 247, 0.08),
+    0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .card-info:before {

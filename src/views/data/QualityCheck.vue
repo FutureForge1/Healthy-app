@@ -173,7 +173,7 @@
                   <PieChart
                     :data="problemDistributionData"
                     title=""
-                    height="300px"
+                    height="100%"
                     :radius="'70%'"
                     :show-percentage="true"
                     class="chart"
@@ -188,7 +188,7 @@
                     :data="severityData"
                     :x-axis-data="severityXAxis"
                     title=""
-                    height="300px"
+                    height="100%"
                     :colors="['#ee6666', '#fac858', '#91cc75']"
                     class="chart"
                   />

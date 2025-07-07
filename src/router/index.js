@@ -43,6 +43,8 @@ const Map3D = () => import('../views/map/Map3D.vue')
 // 侧边栏演示
 const SidebarDemo = () => import('../views/SidebarDemo.vue')
 
+
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -117,6 +119,8 @@ const router = createRouter({
             roles: ['ADMIN', 'ANALYST', 'AUDITOR', 'RESEARCHER']
           }
         },
+
+
 
         // 系统管理模块
         {

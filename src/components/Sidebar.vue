@@ -70,6 +70,8 @@
               <div class="menu-indicator" v-if="isActive('/app/map')"></div>
             </div>
 
+
+
             <!-- 人口信息统计分析 -->
             <div
               class="menu-item"
@@ -430,7 +432,7 @@ onMounted(() => {
 
 <style scoped>
 .sidebar-container {
-  width: 280px;
+  width: 350px;
   height: 100vh;
   background: linear-gradient(180deg, #1e293b 0%, #334155 50%, #475569 100%);
   color: #ffffff;
@@ -443,7 +445,7 @@ onMounted(() => {
 }
 
 .sidebar-container.collapsed {
-  width: 80px;
+  width: 100px;
 }
 
 /* 侧边栏头部 */

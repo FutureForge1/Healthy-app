@@ -70,33 +70,56 @@ const chartRef = ref(null)
 let chartInstance = null
 let resizeObserver = null
 
+// 检查容器尺寸
+const checkContainerSize = () => {
+  if (!chartRef.value) return false
+
+  const rect = chartRef.value.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
+
 // 初始化图表
 const initChart = async () => {
   if (!chartRef.value) return
 
   await nextTick()
-  
+
+  // 检查容器尺寸，如果为0则延迟初始化
+  if (!checkContainerSize()) {
+    console.warn('Chart container size is 0, retrying in 100ms...')
+    setTimeout(() => {
+      initChart()
+    }, 100)
+    return
+  }
+
   // 销毁已存在的实例
   if (chartInstance) {
     chartInstance.dispose()
   }
 
-  // 创建新实例
-  chartInstance = echarts.init(chartRef.value, props.theme)
-  
-  // 设置配置选项
-  chartInstance.setOption(props.option, true)
-  
-  // 绑定事件
-  bindEvents()
-  
-  // 设置加载状态
-  if (props.loading) {
-    chartInstance.showLoading(props.loadingOption)
+  try {
+    // 创建新实例
+    chartInstance = echarts.init(chartRef.value, props.theme)
+
+    // 设置配置选项
+    if (props.option) {
+      chartInstance.setOption(props.option, true)
+    }
+
+    // 绑定事件
+    bindEvents()
+
+    // 设置加载状态
+    if (props.loading) {
+      chartInstance.showLoading(props.loadingOption)
+    }
+
+    // 发出图表就绪事件
+    emit('chart-ready', chartInstance)
+  } catch (error) {
+    console.error('Failed to initialize chart:', error)
   }
-  
-  // 发出图表就绪事件
-  emit('chart-ready', chartInstance)
 }
 
 // 绑定事件
@@ -215,5 +238,15 @@ defineExpose({
 <style scoped>
 .base-chart {
   position: relative;
+  min-width: 100px;
+  min-height: 100px;
+  width: 100%;
+  height: 100%;
+}
+
+/* 确保图表容器在父元素中正确显示 */
+.base-chart > div {
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>

@@ -3,8 +3,8 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
-        <h2>人口统计分析</h2>
-        <p>成都市人口分布、年龄结构、性别比例等统计数据</p>
+        <h2>人口信息统计分析</h2>
+        <p>成都市人口分布、性别比例、常住人口等统计数据分析</p>
       </div>
       <div class="header-actions">
         <el-button type="primary" @click="exportData">
@@ -20,429 +20,618 @@
 
     <!-- 筛选条件 -->
     <div class="filter-section">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-select v-model="filters.district" placeholder="选择区域" clearable @change="handleFilterChange">
-            <el-option label="全市" value="" />
-            <el-option label="锦江区" value="jinjiang" />
-            <el-option label="青羊区" value="qingyang" />
-            <el-option label="金牛区" value="jinniu" />
-            <el-option label="武侯区" value="wuhou" />
-            <el-option label="成华区" value="chenghua" />
-            <el-option label="龙泉驿区" value="longquanyi" />
-            <el-option label="青白江区" value="qingbaijiang" />
-            <el-option label="新都区" value="xindu" />
-            <el-option label="温江区" value="wenjiang" />
-            <el-option label="双流区" value="shuangliu" />
-            <el-option label="郫都区" value="pidu" />
-          </el-select>
-        </el-col>
-        <el-col :span="6">
-          <el-date-picker
-            v-model="filters.year"
-            type="year"
-            placeholder="选择年份"
-            @change="handleFilterChange"
-          />
-        </el-col>
-        <el-col :span="6">
-          <el-select v-model="filters.ageGroup" placeholder="年龄组" clearable @change="handleFilterChange">
-            <el-option label="全年龄段" value="" />
-            <el-option label="0-14岁" value="0-14" />
-            <el-option label="15-64岁" value="15-64" />
-            <el-option label="65岁以上" value="65+" />
-          </el-select>
-        </el-col>
-        <el-col :span="6">
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            查询
-          </el-button>
-          <el-button @click="resetFilters">
-            <el-icon><Refresh /></el-icon>
-            重置
-          </el-button>
-        </el-col>
-      </el-row>
+      <div class="modern-filter-card">
+        <div class="filter-header">
+          <h3>人口数据查询</h3>
+          <p class="filter-subtitle">选择年份进行人口数据分析</p>
+        </div>
+
+        <div class="filter-content">
+          <!-- 左侧：年份选择 -->
+          <div class="filter-left">
+            <div class="filter-item">
+              <label class="filter-label">查询年份</label>
+              <el-date-picker
+                v-model="selectedYear"
+                type="year"
+                placeholder="请选择年份"
+                format="YYYY"
+                value-format="YYYY"
+                @change="handleYearChange"
+                style="width: 100%"
+              />
+            </div>
+
+            <div class="filter-item">
+              <label class="filter-label">数据类型</label>
+              <el-select v-model="selectedDataType" placeholder="请选择数据类型" @change="loadData" style="width: 100%">
+                <el-option label="基础人口统计" value="basic" />
+                <el-option label="城乡人口分布" value="urban_rural" />
+                <el-option label="人口自然变动" value="natural_change" />
+                <el-option label="常住人口统计" value="resident" />
+              </el-select>
+            </div>
+          </div>
+
+          <!-- 右侧：操作按钮 -->
+          <div class="filter-right">
+            <el-button type="primary" @click="loadData" class="action-btn query-btn">
+              <el-icon><Search /></el-icon>
+              查询数据
+            </el-button>
+            <el-button @click="resetFilters" class="action-btn reset-btn">
+              <el-icon><RefreshLeft /></el-icon>
+              重置筛选
+            </el-button>
+            <el-button @click="exportData" class="action-btn export-btn">
+              <el-icon><Download /></el-icon>
+              导出数据
+            </el-button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- 统计概览卡片 -->
-    <div class="overview-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <div class="stat-card total-population">
-            <div class="stat-icon">
-              <el-icon><User /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ formatNumber(overviewData.totalPopulation) }}</div>
-              <div class="stat-label">总人口</div>
-              <div class="stat-change" :class="overviewData.populationChange >= 0 ? 'positive' : 'negative'">
-                <el-icon><ArrowUp v-if="overviewData.populationChange >= 0" /><ArrowDown v-else /></el-icon>
-                {{ Math.abs(overviewData.populationChange) }}%
-              </div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card male-population">
-            <div class="stat-icon">
-              <el-icon><Male /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ formatNumber(overviewData.malePopulation) }}</div>
-              <div class="stat-label">男性人口</div>
-              <div class="stat-ratio">占比 {{ overviewData.maleRatio }}%</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card female-population">
-            <div class="stat-icon">
-              <el-icon><Female /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ formatNumber(overviewData.femalePopulation) }}</div>
-              <div class="stat-label">女性人口</div>
-              <div class="stat-ratio">占比 {{ overviewData.femaleRatio }}%</div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card density">
-            <div class="stat-icon">
-              <el-icon><Location /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ overviewData.populationDensity }}</div>
-              <div class="stat-label">人口密度</div>
-              <div class="stat-unit">人/平方公里</div>
-            </div>
-          </div>
-        </el-col>
-      </el-row>
+    <!-- 概览卡片 -->
+    <div class="overview-cards" v-loading="loading">
+      <!-- 基础人口统计卡片 -->
+      <template v-if="selectedDataType === 'basic'">
+        <OverviewCard
+          :value="totalPopulationDisplay"
+          :ratio="totalPopulationRatio"
+          title="总人口"
+          unit="万人"
+          icon="user"
+          theme="primary"
+        />
+        <OverviewCard
+          :value="totalHouseholdsDisplay"
+          :ratio="householdsRatioDisplay"
+          title="总户数"
+          unit="万户"
+          icon="home"
+          theme="success"
+        />
+        <OverviewCard
+          :value="urbanPopulationDisplay"
+          :ratio="urbanRatioDisplay"
+          title="市区人口"
+          unit="万人"
+          icon="building"
+          theme="warning"
+        />
+        <OverviewCard
+          :value="countyPopulationDisplay"
+          :ratio="countyRatioDisplay"
+          title="县人口"
+          unit="万人"
+          icon="location"
+          theme="info"
+        />
+      </template>
+
+      <!-- 城乡人口分布卡片 -->
+      <template v-else-if="selectedDataType === 'urban_rural'">
+        <OverviewCard
+          :value="urbanPopulationDisplay"
+          :ratio="urbanRatioDisplay"
+          title="城镇人口"
+          unit="万人"
+          icon="building"
+          theme="primary"
+        />
+        <OverviewCard
+          :value="ruralPopulationDisplay"
+          :ratio="ruralRatioDisplay"
+          title="农村人口"
+          unit="万人"
+          icon="tree"
+          theme="success"
+        />
+        <OverviewCard
+          :value="malePopulationDisplay"
+          :ratio="malePopulationRatio"
+          title="男性人口"
+          unit="万人"
+          icon="male"
+          theme="warning"
+        />
+        <OverviewCard
+          :value="femalePopulationDisplay"
+          :ratio="femalePopulationRatio"
+          title="女性人口"
+          unit="万人"
+          icon="female"
+          theme="info"
+        />
+      </template>
+
+      <!-- 人口自然变动卡片 -->
+      <template v-else-if="selectedDataType === 'natural_change'">
+        <OverviewCard
+          :value="birthsDisplay"
+          :ratio="birthRateDisplay"
+          title="出生人数"
+          unit="人"
+          icon="baby"
+          theme="primary"
+        />
+        <OverviewCard
+          :value="deathsDisplay"
+          :ratio="deathRateDisplay"
+          title="死亡人数"
+          unit="人"
+          icon="cross"
+          theme="success"
+        />
+        <OverviewCard
+          :value="naturalIncreaseDisplay"
+          :ratio="naturalIncreaseRateDisplay"
+          title="自然增长"
+          unit="人"
+          icon="trending-up"
+          theme="warning"
+        />
+        <OverviewCard
+          :value="birthRateDisplay"
+          subtitle="出生率"
+          title="出生率"
+          unit="‰"
+          icon="chart"
+          theme="info"
+        />
+      </template>
+
+      <!-- 常住人口统计卡片 -->
+      <template v-else-if="selectedDataType === 'resident'">
+        <OverviewCard
+          :value="residentPopulationDisplay"
+          :ratio="residentPopulationRatio"
+          title="常住人口"
+          unit="万人"
+          icon="user"
+          theme="primary"
+        />
+        <OverviewCard
+          :value="urbanResidentDisplay"
+          :ratio="urbanResidentRatioDisplay"
+          title="城镇常住人口"
+          unit="万人"
+          icon="building"
+          theme="success"
+        />
+        <OverviewCard
+          :value="ruralResidentDisplay"
+          :ratio="ruralResidentRatioDisplay"
+          title="乡村常住人口"
+          unit="万人"
+          icon="tree"
+          theme="warning"
+        />
+        <OverviewCard
+          :value="urbanizationRateDisplay"
+          subtitle="城镇化水平"
+          title="城镇化率"
+          unit="%"
+          icon="chart"
+          theme="info"
+        />
+      </template>
+
+      <!-- 默认显示基础统计 -->
+      <template v-else>
+        <OverviewCard
+          :value="totalPopulationDisplay"
+          :ratio="totalPopulationRatio"
+          title="总人口"
+          unit="万人"
+          icon="user"
+          theme="primary"
+        />
+        <OverviewCard
+          :value="malePopulationDisplay"
+          :ratio="malePopulationRatio"
+          title="男性人口"
+          unit="万人"
+          icon="male"
+          theme="success"
+        />
+        <OverviewCard
+          :value="femalePopulationDisplay"
+          :ratio="femalePopulationRatio"
+          title="女性人口"
+          unit="万人"
+          icon="female"
+          theme="warning"
+        />
+        <OverviewCard
+          :value="residentPopulationDisplay"
+          :ratio="residentPopulationRatio"
+          title="常住人口"
+          unit="万人"
+          icon="location"
+          theme="info"
+        />
+      </template>
     </div>
 
     <!-- 图表区域 -->
     <div class="charts-section">
       <el-row :gutter="20">
-        <!-- 年龄结构分布 -->
+        <!-- 人口结构分布 -->
         <el-col :span="12">
           <div class="chart-card">
             <div class="chart-header">
-              <h4>年龄结构分布</h4>
-              <el-button-group>
-                <el-button size="small" :type="ageChartType === 'pie' ? 'primary' : ''" @click="ageChartType = 'pie'">饼图</el-button>
-                <el-button size="small" :type="ageChartType === 'bar' ? 'primary' : ''" @click="ageChartType = 'bar'">柱图</el-button>
-              </el-button-group>
+              <h4>人口结构分布</h4>
             </div>
-
-            <!-- 使用新的图表组件 -->
             <PieChart
-              v-if="ageChartType === 'pie'"
-              :data="ageChartData"
+              :data="populationStructureData"
               title=""
-              height="300px"
+              height="350px"
               :is-donut="true"
               :inner-radius="'40%'"
               :radius="'70%'"
               :show-percentage="true"
               class="chart"
             />
-            <BarChart
-              v-else
-              :data="ageChartData.map(item => item.value)"
-              :x-axis-data="ageChartData.map(item => item.name)"
-              title=""
-              height="300px"
-              :colors="ageChartData.map(item => item.color)"
-              :y-axis-formatter="(value) => `${value}%`"
-              class="chart"
-            />
           </div>
         </el-col>
-        
-        <!-- 性别比例 -->
+
+        <!-- 性别比例分布 -->
         <el-col :span="12">
           <div class="chart-card">
             <div class="chart-header">
               <h4>性别比例分布</h4>
             </div>
-
-            <!-- 使用新的饼图组件 -->
             <PieChart
-              :data="genderChartData"
+              :data="genderDistributionData"
               title=""
-              height="300px"
+              height="350px"
               :is-donut="true"
               :inner-radius="'50%'"
               :radius="'70%'"
-              :show-percentage="true"
               class="chart"
             />
           </div>
         </el-col>
       </el-row>
 
-      <el-row :gutter="20" style="margin-top: 20px;">
-        <!-- 人口趋势 -->
-        <el-col :span="24">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h4>人口变化趋势</h4>
-              <el-radio-group v-model="trendPeriod" @change="updateTrendChart">
-                <el-radio-button value="5年">近5年</el-radio-button>
-                <el-radio-button value="10年">近10年</el-radio-button>
-                <el-radio-button value="20年">近20年</el-radio-button>
-              </el-radio-group>
-            </div>
-
-            <!-- 使用新的折线图组件 -->
-            <LineChart
-              :data="trendChartData"
-              :x-axis-data="trendXAxisData"
-              title=""
-              height="400px"
-              :smooth="true"
-              :show-area="true"
-              :area-opacity="0.3"
-              :colors="['#5470c6']"
-              :y-axis-formatter="(value) => `${value}万`"
-              class="chart trend-chart"
-            />
-          </div>
-        </el-col>
-      </el-row>
     </div>
 
-    <!-- 区域分布表格 -->
-    <div class="table-section">
-      <div class="table-header">
-        <h4>各区域人口分布详情</h4>
-        <el-button type="primary" size="small" @click="showDistrictDetail">
-          <el-icon><View /></el-icon>
-          查看详情
-        </el-button>
+    <!-- 成都地图区域 -->
+    <ChengduMap
+      :data="regionData"
+      :loading="loading"
+    />
+
+    <!-- 性别比例趋势图 -->
+    <div class="chart-card" style="margin-top: 24px;">
+      <div class="chart-header">
+        <h4>历年性别比例变化趋势</h4>
+        <div class="chart-info">
+          <span class="info-text">性别比例 = 男性人口 / 女性人口 × 100</span>
+        </div>
       </div>
-      <el-table
-        v-loading="tableLoading"
-        :data="districtData"
-        stripe
-        border
-        style="width: 100%"
-      >
-        <el-table-column prop="district" label="区域" width="120" />
-        <el-table-column prop="totalPopulation" label="总人口" width="120">
-          <template #default="{ row }">
-            {{ formatNumber(row.totalPopulation) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="malePopulation" label="男性人口" width="120">
-          <template #default="{ row }">
-            {{ formatNumber(row.malePopulation) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="femalePopulation" label="女性人口" width="120">
-          <template #default="{ row }">
-            {{ formatNumber(row.femalePopulation) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="density" label="人口密度" width="120">
-          <template #default="{ row }">
-            {{ row.density }} 人/km²
-          </template>
-        </el-table-column>
-        <el-table-column prop="ageGroup0_14" label="0-14岁" width="100">
-          <template #default="{ row }">
-            {{ row.ageGroup0_14 }}%
-          </template>
-        </el-table-column>
-        <el-table-column prop="ageGroup15_64" label="15-64岁" width="100">
-          <template #default="{ row }">
-            {{ row.ageGroup15_64 }}%
-          </template>
-        </el-table-column>
-        <el-table-column prop="ageGroup65Plus" label="65岁以上" width="100">
-          <template #default="{ row }">
-            {{ row.ageGroup65Plus }}%
-          </template>
-        </el-table-column>
-        <el-table-column prop="growthRate" label="增长率" width="100">
-          <template #default="{ row }">
-            <span :class="row.growthRate >= 0 ? 'positive' : 'negative'">
-              {{ row.growthRate >= 0 ? '+' : '' }}{{ row.growthRate }}%
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" size="small" @click="viewDistrictDetail(row)">
-              详情
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <LineChart
+        :data="genderTrendData"
+        :x-axis-data="genderTrendYears"
+        :series-names="['男性人口(万人)', '女性人口(万人)', '性别比例']"
+        title=""
+        height="400px"
+        :smooth="true"
+        :show-area="false"
+        :show-legend="true"
+        :dual-y-axis="true"
+        :y-axis-name="'人口数量(万人)'"
+        :right-y-axis-name="'性别比例（%）'"
+        :right-y-axis-series-index="[2]"
+        :y-axis-min="550"
+        :y-axis-max="820"
+        :right-y-axis-min="96"
+        :right-y-axis-max="102"
+        :colors="['#3b82f6', '#10b981', '#f59e0b']"
+        class="chart gender-trend-chart"
+      />
     </div>
+
+    <!-- 出生率和城镇化率图表 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <!-- 出生率柱状图 -->
+      <el-col :span="12">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h4>历年出生率变化趋势</h4>
+            <div class="year-range-selector">
+              <span class="range-label">年份区间：</span>
+              <el-date-picker
+                v-model="birthRateYearRange"
+                type="yearrange"
+                range-separator="至"
+                start-placeholder="开始年份"
+                end-placeholder="结束年份"
+                format="YYYY"
+                value-format="YYYY"
+                @change="loadBirthRateData"
+                style="width: 200px;"
+              />
+            </div>
+          </div>
+          <BarChart
+            :data="birthRateData"
+            :x-axis-data="birthRateYears"
+            title=""
+            height="350px"
+            :colors="['#3b82f6']"
+            :y-axis-name="'出生率(‰)'"
+            :y-axis-formatter="(value) => value + '‰'"
+            class="chart birth-rate-chart"
+          />
+        </div>
+      </el-col>
+
+      <!-- 城镇化率折线图 -->
+      <el-col :span="12">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h4>历年城镇化率变化趋势</h4>
+            <div class="year-range-selector">
+              <span class="range-label">年份区间：</span>
+              <el-date-picker
+                v-model="urbanizationYearRange"
+                type="yearrange"
+                range-separator="至"
+                start-placeholder="开始年份"
+                end-placeholder="结束年份"
+                format="YYYY"
+                value-format="YYYY"
+                @change="loadUrbanizationData"
+                style="width: 200px;"
+              />
+            </div>
+          </div>
+          <LineChart
+            :data="urbanizationData"
+            :x-axis-data="urbanizationYears"
+            title=""
+            height="350px"
+            :smooth="true"
+            :show-area="true"
+            :area-opacity="0.3"
+            :colors="['#10b981']"
+            :y-axis-name="'城镇化率(%)'"
+            :y-axis-min="77"
+            :y-axis-max="82"
+            :y-axis-formatter="(value) => value + '%'"
+            class="chart urbanization-chart"
+          />
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import {
-  Download,
-  Refresh,
-  Search,
-  User,
-  Male,
-  Female,
-  Location,
-  ArrowUp,
-  ArrowDown,
-  View
-} from '@element-plus/icons-vue'
-import { BarChart, LineChart, PieChart } from '@/components/charts'
-import { statisticsApi } from '@/api/statistics'
+import { Download, Refresh, Search, RefreshLeft } from '@element-plus/icons-vue'
+import OverviewCard from '@/components/OverviewCard.vue'
+import PieChart from '@/components/charts/PieChart.vue'
+import LineChart from '@/components/charts/LineChart.vue'
+import BarChart from '@/components/charts/BarChart.vue'
+import ChengduMap from '@/components/ChengduMap.vue'
+import populationApi from '@/api/population'
 
 // 响应式数据
 const loading = ref(false)
-const tableLoading = ref(false)
+const selectedYear = ref('2023')
+const selectedDataType = ref('basic') // 新增：数据类型选择
+const trendPeriod = ref('10')
 
-// 筛选条件
-const filters = reactive({
-  district: '',
-  year: 2024, // 使用2024年作为默认年份
-  ageGroup: ''
-})
+// 人口数据
+const populationData = reactive({
+  // 基础人口统计 (population_basic)
+  totalPopulation: 0,
+  totalHouseholds: 0,
+  urbanHouseholds: 0,
+  countyHouseholds: 0,
+  urbanPopulation: 0,
+  countyPopulation: 0,
 
-// 图表类型
-const ageChartType = ref('pie')
-const trendPeriod = ref('5年')
+  // 城乡人口分布 (population_urban_rural)
+  ruralPopulation: 0,
+  malePopulation: 0,
+  femalePopulation: 0,
+  genderRatio: 0,
 
-// 图表数据
-const ageChartData = ref([
-  { name: '0-14岁', value: 13.2, color: '#5470c6' },
-  { name: '15-64岁', value: 72.5, color: '#91cc75' },
-  { name: '65岁以上', value: 14.3, color: '#fac858' }
-])
+  // 人口自然变动 (population_natural_change)
+  births: 0,
+  birthRate: 0,
+  deaths: 0,
+  deathRate: 0,
+  naturalIncrease: 0,
+  naturalIncreaseRate: 0,
 
-const genderChartData = ref([
-  { name: '男性', value: 10756000, color: '#5470c6' },
-  { name: '女性', value: 10436000, color: '#ee6666' }
-])
+  // 常住人口统计 (population_resident)
+  residentPopulation: 0,
+  urbanResident: 0,
+  ruralResident: 0,
+  urbanizationRate: 0,
 
-const trendChartData = ref([])
-const trendXAxisData = ref([])
-
-// 概览数据
-const overviewData = reactive({
-  totalPopulation: 21192000,
-  malePopulation: 10756000,
-  femalePopulation: 10436000,
-  maleRatio: 50.8,
-  femaleRatio: 49.2,
-  populationDensity: 1453,
-  populationChange: 2.1
+  // 计算的比例数据
+  totalRatio: 0,
+  maleRatio: 0,
+  femaleRatio: 0,
+  residentRatio: 0,
+  urbanRatio: 0,
+  countyRatio: 0,
+  ruralRatio: 0,
+  householdsRatio: 0,
+  urbanResidentRatio: 0,
+  ruralResidentRatio: 0
 })
 
 // 区域数据
-const districtData = ref([
-  {
-    district: '锦江区',
-    totalPopulation: 1240000,
-    malePopulation: 630000,
-    femalePopulation: 610000,
-    density: 18500,
-    ageGroup0_14: 12.5,
-    ageGroup15_64: 72.8,
-    ageGroup65Plus: 14.7,
-    growthRate: 1.8
-  },
-  {
-    district: '青羊区',
-    totalPopulation: 980000,
-    malePopulation: 495000,
-    femalePopulation: 485000,
-    density: 14200,
-    ageGroup0_14: 13.2,
-    ageGroup15_64: 71.5,
-    ageGroup65Plus: 15.3,
-    growthRate: 1.5
-  },
-  {
-    district: '金牛区',
-    totalPopulation: 1350000,
-    malePopulation: 685000,
-    femalePopulation: 665000,
-    density: 12800,
-    ageGroup0_14: 14.1,
-    ageGroup15_64: 73.2,
-    ageGroup65Plus: 12.7,
-    growthRate: 2.3
+const regionData = ref([])
+
+// 性别比例数据
+const genderTrendData = ref([])
+const genderTrendYears = ref([])
+
+// 出生率数据
+const birthRateData = ref([])
+const birthRateYears = ref([])
+const birthRateYearRange = ref(['2019', '2023']) // 默认年份区间
+
+// 城镇化率数据
+const urbanizationData = ref([])
+const urbanizationYears = ref([])
+const urbanizationYearRange = ref(['2019', '2023']) // 默认年份区间
+
+// 图表数据
+const populationStructureData = ref([])
+const genderDistributionData = ref([])
+const populationTrendData = ref([])
+const trendYears = ref([])
+
+// 计算属性 - 概览卡片显示数据
+const totalPopulationDisplay = computed(() =>
+  populationData.totalPopulation !== null && populationData.totalPopulation !== undefined ? populationData.totalPopulation : null
+)
+const totalPopulationRatio = computed(() => {
+  const ratio = populationData.totalRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
   }
-  // 更多区域数据...
-])
+  return null
+})
 
-// 格式化数字
-const formatNumber = (num) => {
-  if (num >= 10000) {
-    return (num / 10000).toFixed(1) + '万'
+const malePopulationDisplay = computed(() =>
+  populationData.malePopulation !== null && populationData.malePopulation !== undefined ? populationData.malePopulation : null
+)
+const malePopulationRatio = computed(() => {
+  const ratio = populationData.maleRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
   }
-  return num.toLocaleString()
-}
+  return null
+})
 
-// 年龄图表数据更新（现在只需要更新响应式数据）
-const updateAgeChart = () => {
-  // 数据已经在 ageChartData 中定义，组件会自动响应变化
-}
-
-// 性别图表数据更新（现在只需要更新响应式数据）
-const updateGenderChart = () => {
-  // 更新性别图表数据
-  genderChartData.value = [
-    { name: '男性', value: overviewData.maleRatio, color: '#5470c6' },
-    { name: '女性', value: overviewData.femaleRatio, color: '#ee6666' }
-  ]
-}
-
-// 更新趋势图表数据
-const updateTrendChart = () => {
-  // 模拟趋势数据
-  const years = []
-  const totalData = []
-
-  const currentYear = new Date().getFullYear()
-  const yearCount = trendPeriod.value === '5年' ? 5 : trendPeriod.value === '10年' ? 10 : 20
-
-  for (let i = yearCount - 1; i >= 0; i--) {
-    years.push(currentYear - i)
-    // 转换为万人单位
-    totalData.push(Math.floor(2000 + Math.random() * 200))
+const femalePopulationDisplay = computed(() =>
+  populationData.femalePopulation !== null && populationData.femalePopulation !== undefined ? populationData.femalePopulation : null
+)
+const femalePopulationRatio = computed(() => {
+  const ratio = populationData.femaleRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
   }
+  return null
+})
 
-  // 更新图表数据
-  trendXAxisData.value = years
-  trendChartData.value = totalData
-}
+const residentPopulationDisplay = computed(() =>
+  populationData.residentPopulation !== null && populationData.residentPopulation !== undefined ? populationData.residentPopulation : null
+)
+const residentPopulationRatio = computed(() => {
+  const ratio = populationData.residentRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
 
-// 筛选条件变化
-const handleFilterChange = () => {
-  // 根据筛选条件更新数据
-  loadData()
-}
+// 新增计算属性
+const totalHouseholdsDisplay = computed(() =>
+  populationData.totalHouseholds !== null && populationData.totalHouseholds !== undefined ? populationData.totalHouseholds : null
+)
+const householdsRatioDisplay = computed(() => {
+  const ratio = populationData.householdsRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
 
-// 搜索
-const handleSearch = () => {
-  loadData()
-}
+const urbanPopulationDisplay = computed(() =>
+  populationData.urbanPopulation !== null && populationData.urbanPopulation !== undefined ? populationData.urbanPopulation : null
+)
+const urbanRatioDisplay = computed(() => {
+  const ratio = populationData.urbanRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
 
-// 重置筛选条件
-const resetFilters = () => {
-  Object.assign(filters, {
-    district: '',
-    year: 2024, // 使用2024年作为默认年份
-    ageGroup: ''
-  })
+const countyPopulationDisplay = computed(() =>
+  populationData.countyPopulation !== null && populationData.countyPopulation !== undefined ? populationData.countyPopulation : null
+)
+const countyRatioDisplay = computed(() => {
+  const ratio = populationData.countyRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
+
+const ruralPopulationDisplay = computed(() =>
+  populationData.ruralPopulation !== null && populationData.ruralPopulation !== undefined ? populationData.ruralPopulation : null
+)
+const ruralRatioDisplay = computed(() => {
+  const ratio = populationData.ruralRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
+
+const birthsDisplay = computed(() =>
+  populationData.births !== null && populationData.births !== undefined ? populationData.births : null
+)
+const birthRateDisplay = computed(() =>
+  populationData.birthRate !== null && populationData.birthRate !== undefined ? populationData.birthRate : null
+)
+
+const deathsDisplay = computed(() =>
+  populationData.deaths !== null && populationData.deaths !== undefined ? populationData.deaths : null
+)
+const deathRateDisplay = computed(() =>
+  populationData.deathRate !== null && populationData.deathRate !== undefined ? populationData.deathRate : null
+)
+
+const naturalIncreaseDisplay = computed(() =>
+  populationData.naturalIncrease !== null && populationData.naturalIncrease !== undefined ? populationData.naturalIncrease : null
+)
+const naturalIncreaseRateDisplay = computed(() =>
+  populationData.naturalIncreaseRate !== null && populationData.naturalIncreaseRate !== undefined ? populationData.naturalIncreaseRate : null
+)
+
+const urbanResidentDisplay = computed(() =>
+  populationData.urbanResident !== null && populationData.urbanResident !== undefined ? populationData.urbanResident : null
+)
+const urbanResidentRatioDisplay = computed(() => {
+  const ratio = populationData.urbanResidentRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
+
+const ruralResidentDisplay = computed(() =>
+  populationData.ruralResident !== null && populationData.ruralResident !== undefined ? populationData.ruralResident : null
+)
+const ruralResidentRatioDisplay = computed(() => {
+  const ratio = populationData.ruralResidentRatio
+  if (ratio && ratio !== '暂无数据') {
+    return typeof ratio === 'string' ? ratio.replace('%', '') : ratio
+  }
+  return null
+})
+
+const urbanizationRateDisplay = computed(() =>
+  populationData.urbanizationRate !== null && populationData.urbanizationRate !== undefined ? populationData.urbanizationRate : null
+)
+
+// 年份变化处理
+const handleYearChange = () => {
   loadData()
 }
 
@@ -450,32 +639,404 @@ const resetFilters = () => {
 const loadData = async () => {
   try {
     loading.value = true
-    tableLoading.value = true
 
-    // 调用真实API获取数据
-    const response = await statisticsApi.getPopulationStats(filters)
-    if (response.code === 200) {
-      // 更新数据
-      Object.assign(overviewData, response.data.overview)
-      districtData.value = response.data.districts || []
-
-      // 更新图表
-      await nextTick()
-      updateAgeChart()
-      updateTrendChart()
+    const year = selectedYear.value
+    const requestParams = {
+      filters: { year: { eq: parseInt(year) } },
+      sort: [{ field: 'year', order: 'desc' }],
+      pageInfo: { index: 0, size: 1 }
     }
+
+    console.log('加载数据类型:', selectedDataType.value, '年份:', year)
+
+    // 根据选择的数据类型调用不同的API
+    switch (selectedDataType.value) {
+      case 'basic':
+        await loadBasicPopulationData(requestParams)
+        break
+      case 'urban_rural':
+        await loadUrbanRuralData(requestParams)
+        break
+      case 'natural_change':
+        await loadNaturalChangeData(requestParams)
+        break
+      case 'resident':
+        await loadResidentData(requestParams)
+        break
+      default:
+        await loadBasicPopulationData(requestParams)
+    }
+
+    ElMessage.success('数据加载成功')
   } catch (error) {
-    ElMessage.error('加载数据失败，请检查后端服务是否正常运行')
-    console.error('加载数据失败:', error)
+    console.error('加载人口数据失败:', error)
+    ElMessage.error('数据加载失败，请检查网络连接')
+    resetPopulationData()
   } finally {
     loading.value = false
-    tableLoading.value = false
   }
+}
+
+// 加载基础人口统计数据
+const loadBasicPopulationData = async (requestParams) => {
+  const response = await populationApi.getBasicPopulation(requestParams)
+  console.log('基础人口数据响应:', response)
+
+  const data = response.data?.rows?.[0] || {}
+  console.log('提取的数据:', data)
+
+  // 更新基础人口数据（使用正确的驼峰命名字段）
+  Object.assign(populationData, {
+    totalPopulation: data.totalPopulation || 0,
+    totalHouseholds: data.totalHouseholds || 0,
+    urbanHouseholds: data.urbanHouseholds || 0,
+    countyHouseholds: data.countyHouseholds || 0,
+    urbanPopulation: data.urbanPopulation || 0,
+    countyPopulation: data.countyPopulation || 0,
+
+    // 计算比例
+    totalRatio: '100%',
+    householdsRatio: '100%',
+    urbanRatio: calculateRatio(data.urbanPopulation, data.totalPopulation),
+    countyRatio: calculateRatio(data.countyPopulation, data.totalPopulation)
+  })
+
+  // 更新图表数据 - 基础人口分布（市区vs县）
+  populationStructureData.value = [
+    { name: '市区人口', value: data.urbanPopulation || 0, color: '#3b82f6' },
+    { name: '县人口', value: data.countyPopulation || 0, color: '#10b981' }
+  ]
+}
+
+// 加载城乡人口分布数据
+const loadUrbanRuralData = async (requestParams) => {
+  // 并行调用城乡分布和性别分布API
+  const [defactoResponse, genderResponse] = await Promise.all([
+    populationApi.getDefactoPopulation(requestParams),
+    populationApi.getGenderPopulation(requestParams)
+  ])
+
+  console.log('城乡人口数据:', defactoResponse)
+  console.log('性别人口数据:', genderResponse)
+
+  const defactoData = defactoResponse.data?.rows?.[0] || {}
+  const genderData = genderResponse.data?.rows?.[0] || {}
+
+  console.log('城乡数据字段:', Object.keys(defactoData))
+  console.log('城乡数据内容:', defactoData)
+  console.log('性别数据字段:', Object.keys(genderData))
+  console.log('性别数据内容:', genderData)
+
+  // 更新城乡人口数据（使用驼峰命名）
+  Object.assign(populationData, {
+    urbanPopulation: defactoData.urbanPopulation || 0,
+    ruralPopulation: defactoData.ruralPopulation || 0,
+    malePopulation: genderData.malePopulation || 0,
+    femalePopulation: genderData.femalePopulation || 0,
+    genderRatio: genderData.genderRatio || 0,
+
+    // 计算比例
+    urbanRatio: calculateRatio(defactoData.urbanPopulation, (defactoData.urbanPopulation || 0) + (defactoData.ruralPopulation || 0)),
+    ruralRatio: calculateRatio(defactoData.ruralPopulation, (defactoData.urbanPopulation || 0) + (defactoData.ruralPopulation || 0)),
+    maleRatio: calculateRatio(genderData.malePopulation, (genderData.malePopulation || 0) + (genderData.femalePopulation || 0)),
+    femaleRatio: calculateRatio(genderData.femalePopulation, (genderData.malePopulation || 0) + (genderData.femalePopulation || 0))
+  })
+
+  // 更新图表数据
+  updateChartData({
+    structure: {
+      urban: defactoData.urbanPopulation || 0,
+      rural: defactoData.ruralPopulation || 0
+    },
+    gender: {
+      male: genderData.malePopulation || 0,
+      female: genderData.femalePopulation || 0
+    }
+  })
+}
+
+// 加载人口自然变动数据
+const loadNaturalChangeData = async (requestParams) => {
+  const response = await populationApi.getPopulationChange(requestParams)
+  console.log('人口自然变动数据:', response)
+
+  const data = response.data?.rows?.[0] || {}
+
+  // 更新人口自然变动数据
+  Object.assign(populationData, {
+    births: data.births || 0,
+    birthRate: data.birthRate || 0,
+    deaths: data.deaths || 0,
+    deathRate: data.deathRate || 0,
+    naturalIncrease: data.naturalIncrease || 0,
+    naturalIncreaseRate: data.naturalIncreaseRate || 0
+  })
+
+  // 更新图表数据
+  updateChartData({
+    naturalChange: {
+      births: data.births || 0,
+      deaths: data.deaths || 0,
+      naturalIncrease: data.naturalIncrease || 0
+    }
+  })
+}
+
+// 加载常住人口统计数据
+const loadResidentData = async (requestParams) => {
+  const response = await populationApi.getResidentPopulation(requestParams)
+  console.log('常住人口数据:', response)
+
+  const data = response.data?.rows?.[0] || {}
+
+  // 更新常住人口数据
+  Object.assign(populationData, {
+    residentPopulation: data.residentPopulation || 0,
+    urbanResident: data.urbanResident || 0,
+    ruralResident: data.ruralResident || 0,
+    urbanizationRate: data.urbanizationRate || 0,
+
+    // 计算比例
+    residentRatio: '100%',
+    urbanResidentRatio: calculateRatio(data.urbanResident, data.residentPopulation),
+    ruralResidentRatio: calculateRatio(data.ruralResident, data.residentPopulation)
+  })
+
+  // 更新图表数据
+  updateChartData({
+    resident: {
+      urban: data.urbanResident || 0,
+      rural: data.ruralResident || 0
+    }
+  })
+}
+
+// 加载区域人口分布数据
+const loadRegionData = async (requestParams) => {
+  // 获取区域人口分布数据
+  const regionParams = {
+    filters: { year: { eq: parseInt(selectedYear.value) } },
+    sort: [{ field: 'population', order: 'desc' }],
+    pageInfo: { index: 0, size: 20 }
+  }
+
+  const response = await populationApi.getRegionPopulation(regionParams)
+  console.log('区域人口数据:', response)
+
+  const regions = response.data?.rows || []
+
+  // 更新regionData供地图组件使用
+  regionData.value = regions
+
+  // 计算总人口
+  const totalRegionPopulation = regions.reduce((sum, region) => sum + (region.population || 0), 0)
+
+  // 更新区域数据
+  Object.assign(populationData, {
+    totalPopulation: (totalRegionPopulation / 100).toFixed(1), // 转换为万人单位
+    totalRatio: '100%'
+  })
+
+  // 更新图表数据
+  updateChartData({
+    regions: regions.map(region => ({
+      name: region.name || '未知区域',
+      value: region.population || 0,
+      level: region.level || 'unknown'
+    }))
+  })
+}
+
+// 加载性别比例趋势数据
+const loadGenderTrendData = async () => {
+  try {
+    const genderParams = {
+      filters: { year: { gte: 2009 } }, // 从2009年开始
+      sort: [{ field: 'year', order: 'asc' }],
+      pageInfo: { index: 0, size: 20 }
+    }
+
+    const response = await populationApi.getGenderPopulation(genderParams)
+    console.log('性别趋势数据:', response)
+
+    const genderData = response.data?.rows || []
+
+    if (genderData.length > 0) {
+      // 提取年份
+      genderTrendYears.value = genderData.map(item => item.year.toString())
+
+      // 准备图表数据 - LineChart组件期望的格式是数组的数组
+      genderTrendData.value = [
+        genderData.map(item => item.malePopulation || 0),    // 男性人口数据
+        genderData.map(item => item.femalePopulation || 0),  // 女性人口数据
+        genderData.map(item => item.genderRatio || 0)        // 性别比例数据
+      ]
+    }
+  } catch (error) {
+    console.error('加载性别趋势数据失败:', error)
+  }
+}
+
+// 加载出生率数据
+const loadBirthRateData = async () => {
+  try {
+    if (!birthRateYearRange.value || birthRateYearRange.value.length !== 2) {
+      console.warn('出生率年份区间未正确设置')
+      return
+    }
+
+    const [startYear, endYear] = birthRateYearRange.value
+    const changeParams = {
+      filters: {
+        year: {
+          gte: parseInt(startYear),
+          lte: parseInt(endYear)
+        }
+      },
+      sort: [{ field: 'year', order: 'asc' }],
+      pageInfo: { index: 0, size: 20 }
+    }
+
+    const response = await populationApi.getPopulationChange(changeParams)
+    console.log('出生率数据:', response)
+
+    const changeData = response.data?.rows || []
+
+    if (changeData.length > 0) {
+      // 提取年份和出生率数据
+      birthRateYears.value = changeData.map(item => item.year.toString())
+      birthRateData.value = changeData.map(item => item.birthRate || 0)
+    }
+  } catch (error) {
+    console.error('加载出生率数据失败:', error)
+  }
+}
+
+// 加载城镇化率数据
+const loadUrbanizationData = async () => {
+  try {
+    if (!urbanizationYearRange.value || urbanizationYearRange.value.length !== 2) {
+      console.warn('城镇化率年份区间未正确设置')
+      return
+    }
+
+    const [startYear, endYear] = urbanizationYearRange.value
+    const residentParams = {
+      filters: {
+        year: {
+          gte: parseInt(startYear),
+          lte: parseInt(endYear)
+        }
+      },
+      sort: [{ field: 'year', order: 'asc' }],
+      pageInfo: { index: 0, size: 20 }
+    }
+
+    const response = await populationApi.getResidentPopulation(residentParams)
+    console.log('城镇化率数据:', response)
+
+    const residentData = response.data?.rows || []
+
+    if (residentData.length > 0) {
+      // 提取年份和城镇化率数据
+      urbanizationYears.value = residentData.map(item => item.year.toString())
+      urbanizationData.value = residentData.map(item => item.urbanizationRate || 0)
+    }
+  } catch (error) {
+    console.error('加载城镇化率数据失败:', error)
+  }
+}
+
+// 计算比例的辅助函数
+const calculateRatio = (value, total) => {
+  const numValue = parseFloat(value) || 0
+  const numTotal = parseFloat(total) || 0
+  return numTotal > 0 ? `${((numValue / numTotal) * 100).toFixed(1)}%` : '暂无数据'
+}
+
+// 重置人口数据
+const resetPopulationData = () => {
+  Object.keys(populationData).forEach(key => {
+    if (typeof populationData[key] === 'number') {
+      populationData[key] = 0
+    } else {
+      populationData[key] = '暂无数据'
+    }
+  })
+}
+
+// 更新图表数据
+const updateChartData = (data) => {
+  // 人口结构分布（城乡分布）
+  if (data.structure) {
+    populationStructureData.value = [
+      { name: '城镇人口', value: data.structure.urban || 0, color: '#3b82f6' },
+      { name: '农村人口', value: data.structure.rural || 0, color: '#10b981' }
+    ]
+  }
+
+  // 性别分布
+  if (data.gender) {
+    genderDistributionData.value = [
+      { name: '男性', value: data.gender.male || 0, color: '#3b82f6' },
+      { name: '女性', value: data.gender.female || 0, color: '#ec4899' }
+    ]
+  }
+}
+
+// 加载趋势数据
+const loadTrendData = async () => {
+  try {
+    const period = parseInt(trendPeriod.value) || 10
+    const currentYear = new Date().getFullYear()
+    const startYear = currentYear - period + 1
+
+    const requestParams = {
+      filters: {
+        year: { gte: startYear, lte: currentYear }
+      },
+      sort: [{ field: 'year', order: 'asc' }],
+      pageInfo: { index: 0, size: period }
+    }
+
+    // 调用后端基础人口API获取趋势数据
+    const response = await populationApi.getBasicPopulation(requestParams)
+
+    console.log('趋势数据后端返回:', response)
+
+    if (response.rows && response.rows.length > 0) {
+      // 处理后端返回的真实数据
+      const trendData = response.data?.rows?.map(item => ({
+        year: item.year,
+        totalPopulation: item.totalPopulation || 0  // 数据库中已经是万人单位
+      })) || []
+
+      trendYears.value = trendData.map(item => item.year)
+      populationTrendData.value = trendData.map(item => parseFloat(item.totalPopulation))
+
+      console.log('处理后的趋势数据:', { years: trendYears.value, values: populationTrendData.value })
+    } else {
+      // 重置趋势数据
+      trendYears.value = []
+      populationTrendData.value = []
+    }
+  } catch (error) {
+    console.error('加载趋势数据失败:', error)
+    // 重置趋势数据
+    trendYears.value = []
+    populationTrendData.value = []
+  }
+}
+
+// 重置筛选
+const resetFilters = () => {
+  selectedYear.value = new Date().getFullYear().toString()
+  loadData()
 }
 
 // 导出数据
 const exportData = () => {
-  ElMessage.success('导出功能开发中')
+  ElMessage.info('导出功能开发中')
 }
 
 // 刷新数据
@@ -483,60 +1044,47 @@ const refreshData = () => {
   loadData()
 }
 
-// 查看区域详情
-const showDistrictDetail = () => {
-  ElMessage.info('区域详情功能开发中')
-}
-
-// 查看单个区域详情
-const viewDistrictDetail = (row) => {
-  ElMessage.info(`查看${row.district}详情功能开发中`)
-}
-
-// 监听图表类型变化
-watch(ageChartType, () => {
-  updateAgeChart()
-})
-
 // 生命周期
-onMounted(async () => {
-  // 初始化图表数据
-  updateGenderChart()
-  updateTrendChart()
+onMounted(() => {
   loadData()
+  loadTrendData()
+  loadRegionData() // 加载区域数据供地图使用
+  loadGenderTrendData() // 加载性别趋势数据
+  loadBirthRateData() // 加载出生率数据
+  loadUrbanizationData() // 加载城镇化率数据
 })
 </script>
 
 <style scoped>
 .population-stats {
   padding: 24px;
-  background: #f5f7fa;
+  background-color: #f8fafc;
   min-height: 100vh;
 }
 
-/* 页面头部 */
+/* 页面头部样式 */
 .page-header {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 24px;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .header-content h2 {
-  margin: 0 0 8px 0;
-  color: #2c3e50;
+  color: #1e293b;
   font-size: 24px;
   font-weight: 600;
+  margin: 0 0 8px 0;
 }
 
 .header-content p {
-  margin: 0;
   color: #64748b;
   font-size: 14px;
+  margin: 0;
 }
 
 .header-actions {
@@ -544,96 +1092,125 @@ onMounted(async () => {
   gap: 12px;
 }
 
-/* 筛选区域 */
-.filter-section {
-  background: white;
+/* 筛选区域样式 */
+.modern-filter-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
   padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* 概览卡片 */
-.overview-cards {
-  margin-bottom: 20px;
+.filter-header h3 {
+  color: #1e293b;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
 }
 
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.filter-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+  font-weight: 400;
+}
+
+.filter-content {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.filter-left {
+  flex: 0 0 auto;
+  min-width: 280px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.filter-right {
+  display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 16px;
+}
+
+.action-btn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 500;
   transition: all 0.3s ease;
-  cursor: pointer;
 }
 
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
+/* 按钮样式 */
+.query-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
   color: white;
 }
 
-.total-population .stat-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.male-population .stat-icon { background: linear-gradient(135deg, #5470c6 0%, #91cc75 100%); }
-.female-population .stat-icon { background: linear-gradient(135deg, #ee6666 0%, #fac858 100%); }
-.density .stat-icon { background: linear-gradient(135deg, #73d13d 0%, #36cfc9 100%); }
-
-.stat-content {
-  flex: 1;
+.query-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 4px;
+.reset-btn {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border: none;
+  color: white;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 4px;
+.reset-btn:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
-.stat-change {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
+.export-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  color: white;
 }
 
-.stat-change.positive { color: #52c41a; }
-.stat-change.negative { color: #ff4d4f; }
-
-.stat-ratio, .stat-unit {
-  font-size: 12px;
-  color: #8c8c8c;
+.export-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-/* 图表区域 */
+/* 概览卡片样式 */
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* 图表区域样式 */
 .charts-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .chart-card {
   background: white;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  height: 100%;
 }
 
 .chart-header {
@@ -641,17 +1218,18 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .chart-header h4 {
-  margin: 0;
-  color: #2c3e50;
+  color: #1e293b;
   font-size: 16px;
   font-weight: 600;
+  margin: 0;
 }
 
 .chart {
-  height: 300px;
   width: 100%;
 }
 
@@ -659,54 +1237,38 @@ onMounted(async () => {
   height: 400px;
 }
 
-/* 表格区域 */
-.table-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.gender-trend-chart {
+  height: 400px;
 }
 
-.table-header {
+.chart-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
 }
 
-.table-header h4 {
-  margin: 0;
-  color: #2c3e50;
-  font-size: 16px;
-  font-weight: 600;
+.info-text {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
-.positive { color: #52c41a; }
-.negative { color: #ff4d4f; }
+.birth-rate-chart,
+.urbanization-chart {
+  height: 350px;
+}
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .population-stats {
-    padding: 16px;
-  }
+.year-range-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .chart {
-    height: 250px;
-  }
-
-  .trend-chart {
-    height: 300px;
-  }
+.range-label {
+  font-size: 14px;
+  color: #666;
+  white-space: nowrap;
 }
 </style>
