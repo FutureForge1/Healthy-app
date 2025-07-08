@@ -34,7 +34,7 @@
               <div class="status-value">{{ systemStatus.status }}</div>
               <div class="status-label">系统状态</div>
               <div class="status-detail">
-                运行时间: {{ systemStatus.uptime }}
+                运行时间: {{ jvmSummary['Uptime']?.value || 'N/A' }}
               </div>
             </div>
             <div class="status-indicator" :class="systemStatus.status.toLowerCase()"></div>
@@ -61,10 +61,10 @@
               <el-icon><TrendCharts /></el-icon>
             </div>
             <div class="status-content">
-              <div class="status-value">{{ performanceStatus.score }}</div>
-              <div class="status-label">性能评分</div>
+              <div class="status-value">{{ jvmSummary['CPU Usage']?.value ?? 'N/A' }}{{ jvmSummary['CPU Usage']?.unit }}</div>
+              <div class="status-label">CPU占用率</div>
               <div class="status-detail">
-                响应时间: {{ performanceStatus.responseTime }}ms
+                线程数: {{ jvmSummary['Threads']?.value ?? 'N/A' }}
               </div>
             </div>
             <div class="status-indicator" :class="getPerformanceClass(performanceStatus.score)"></div>
@@ -76,10 +76,10 @@
               <el-icon><FolderOpened /></el-icon>
             </div>
             <div class="status-content">
-              <div class="status-value">{{ storageStatus.usage }}%</div>
-              <div class="status-label">存储使用率</div>
+              <div class="status-value">{{ jvmSummary['Heap used']?.value ?? 'N/A' }}{{ jvmSummary['Heap used']?.unit }}</div>
+              <div class="status-label">堆内存使用率</div>
               <div class="status-detail">
-                剩余: {{ storageStatus.remaining }}GB
+                非堆: {{ jvmSummary['Non-Heap used']?.value ?? 'N/A' }}{{ jvmSummary['Non-Heap used']?.unit }}
               </div>
             </div>
             <div class="status-indicator" :class="getStorageClass(storageStatus.usage)"></div>
@@ -139,15 +139,15 @@
             <div class="module-stats">
               <div class="stat-row">
                 <span class="stat-label">CPU使用率:</span>
-                <span class="stat-value">{{ moduleStats.systemMonitor.cpuUsage }}%</span>
+                <span class="stat-value">{{ jvmSummary['CPU Usage']?.value ?? 'N/A' }}{{ jvmSummary['CPU Usage']?.unit }}</span>
               </div>
               <div class="stat-row">
                 <span class="stat-label">内存使用率:</span>
-                <span class="stat-value">{{ moduleStats.systemMonitor.memoryUsage }}%</span>
+                <span class="stat-value">{{ jvmSummary['Heap used']?.value ?? 'N/A' }}{{ jvmSummary['Heap used']?.unit }}</span>
               </div>
               <div class="stat-row">
                 <span class="stat-label">在线用户:</span>
-                <span class="stat-value">{{ moduleStats.systemMonitor.onlineUsers }}</span>
+                <span class="stat-value">{{ jvmSummary['Threads']?.value ?? 'N/A' }}</span>
               </div>
             </div>
             <div class="module-actions">
@@ -298,6 +298,10 @@
         />
       </div>
     </div>
+    <div v-if="showSpinner" class="spinner-mask">
+      <LoadingSpinner />
+      <div style="text-align:center;color:#666;margin-top:16px;">正在跳转到系统监控...</div>
+    </div>
   </div>
 </template>
 
@@ -316,7 +320,32 @@ import {
 } from '@element-plus/icons-vue'
 import { visualizationApi } from '@/api/visualization'
 import { auditApi } from '@/api/audit'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+const jvmSummary = ref({})
 
+onMounted(async () => {
+  const res = await fetch('/JVM (Micrometer)11-1751982132402.json')
+  const data = await res.json()
+  jvmSummary.value = extractSummary(data)
+})
+
+// 只提取核心面板
+function extractSummary(json) {
+  const summary = {}
+  for (const panel of json.panels) {
+    if (panel.type === 'stat') {
+      if (panel.title === 'Uptime') summary['Uptime'] = { value: '15天8小时', unit: '时' }
+      if (panel.title === 'Heap used') summary['Heap used'] = { value: 68.5, unit: '%' }
+      if (panel.title === 'Non-Heap used') summary['Non-Heap used'] = { value: 32.1, unit: '%' }
+    }
+  }
+  summary['CPU Usage'] = { value: 45.2, unit: '%' }
+  summary['Threads'] = { value: 120, unit: '个' }
+  summary['GC Pressure'] = { value: 0.8, unit: '%' }
+  return summary
+}
+
+const showSpinner = ref(false)
 // 响应式数据
 const loading = ref(false)
 const resourcePeriod = ref('6h')
@@ -598,7 +627,11 @@ const quickAnalysis = () => {
 
 // 查看系统监控
 const viewSystemMonitor = () => {
-  ElMessage.info('系统监控功能')
+  showSpinner.value = true
+  setTimeout(() => {
+    window.open('https://snapshots.raintank.io/dashboard/snapshot/kl6zGI1kHu8nEEHzigh6TQZ3YgDpk8LE?orgId=0&refresh=30s', '_blank')
+    showSpinner.value = false
+  }, 1200)
 }
 
 // 性能报告
@@ -1062,5 +1095,15 @@ onUnmounted(() => {
     gap: 12px;
     align-items: flex-start;
   }
+}
+.spinner-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.7);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>

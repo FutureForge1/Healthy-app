@@ -58,9 +58,10 @@
               <el-icon><FolderOpened /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ formatFileSize(overviewData.storageUsed) }}</div>
-              <div class="stat-label">存储使用量</div>
-              <div class="stat-trend">剩余 {{ formatFileSize(overviewData.storageRemaining) }}</div>
+              <div class="status-value">{{ jvmSummary['Heap used']?.value ?? 'N/A' }}{{ jvmSummary['Heap used']?.unit }}</div>
+              <div class="status-detail">
+                非堆: {{ jvmSummary['Non-Heap used']?.value ?? 'N/A' }}{{ jvmSummary['Non-Heap used']?.unit }}
+              </div>
             </div>
           </div>
         </el-col>
