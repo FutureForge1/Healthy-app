@@ -122,40 +122,6 @@
               </div>
             </div>
           </div>
-
-          <!-- 3D地图特色展示 -->
-          <div class="feature-card map-card">
-            <div class="map-card-header">
-              <div class="feature-icon map-icon">
-                <svg viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M20.5,3L20.34,3.03L15,5.1L9,3L3.36,4.9C3.15,4.97 3,5.15 3,5.38V20.5A0.5,0.5 0 0,0 3.5,21L3.66,20.97L9,18.9L15,21L20.64,19.1C20.85,19.03 21,18.85 21,18.62V3.5A0.5,0.5 0 0,0 20.5,3M10,5.47L14,6.87V18.53L10,17.13V5.47M5,6.46L8,5.45V17.15L5,18.31V6.46M16,18.55L19,17.54V5.84L16,6.85V18.55Z"/>
-                </svg>
-              </div>
-              <div class="map-card-title">
-                <h3>成都市3D数据地图</h3>
-                <p>实时展示健康大数据覆盖区域</p>
-              </div>
-            </div>
-
-            <div class="map-card-content">
-              <ChengduMap3D />
-            </div>
-
-            <div class="map-card-stats">
-              <div class="stat-item">
-                <span class="stat-number">23</span>
-                <span class="stat-label">覆盖区县</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">1247</span>
-                <span class="stat-label">数据节点</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-number">99.9%</span>
-                <span class="stat-label">覆盖率</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -372,7 +338,6 @@ import {
   Money
 } from '@element-plus/icons-vue'
 import Navbar from '../components/Navbar.vue'
-import ChengduMap3D from '../components/ChengduMap3D.vue'
 import { gsap } from 'gsap'
 
 const router = useRouter()

@@ -29,8 +29,8 @@
           <el-icon size="32" color="#409EFF"><Money /></el-icon>
         </div>
         <div class="card-content">
-          <div class="card-value">¥{{ (overviewData.totalRevenue / 100000000).toFixed(2) }}亿</div>
-          <div class="card-label">医疗总收入</div>
+          <div class="card-value">¥{{ overviewData.totalRevenue.toFixed(2) }}万</div>
+          <div class="card-label">总费用</div>
           <div class="card-change" :class="{ positive: overviewData.revenueGrowth > 0 }">
             <el-icon><ArrowUp v-if="overviewData.revenueGrowth > 0" /><ArrowDown v-else /></el-icon>
             {{ Math.abs(overviewData.revenueGrowth) }}%
@@ -43,8 +43,8 @@
           <el-icon size="32" color="#67C23A"><User /></el-icon>
         </div>
         <div class="card-content">
-          <div class="card-value">¥{{ overviewData.avgOutpatientCost.toLocaleString() }}</div>
-          <div class="card-label">门诊均费</div>
+          <div class="card-value">¥{{ overviewData.outpatientRevenue.toFixed(2) }}万</div>
+          <div class="card-label">门诊费用</div>
           <div class="card-change" :class="{ positive: overviewData.outpatientCostGrowth > 0 }">
             <el-icon><ArrowUp v-if="overviewData.outpatientCostGrowth > 0" /><ArrowDown v-else /></el-icon>
             {{ Math.abs(overviewData.outpatientCostGrowth) }}%
@@ -57,8 +57,8 @@
           <el-icon size="32" color="#E6A23C"><House /></el-icon>
         </div>
         <div class="card-content">
-          <div class="card-value">¥{{ overviewData.avgInpatientCost.toLocaleString() }}</div>
-          <div class="card-label">住院均费</div>
+          <div class="card-value">¥{{ overviewData.inpatientRevenue.toFixed(2) }}万</div>
+          <div class="card-label">住院费用</div>
           <div class="card-change" :class="{ positive: overviewData.inpatientCostGrowth > 0 }">
             <el-icon><ArrowUp v-if="overviewData.inpatientCostGrowth > 0" /><ArrowDown v-else /></el-icon>
             {{ Math.abs(overviewData.inpatientCostGrowth) }}%
@@ -72,7 +72,7 @@
         </div>
         <div class="card-content">
           <div class="card-value">{{ overviewData.medicineRatio }}%</div>
-          <div class="card-label">药品费用占比</div>
+          <div class="card-label">医药费用占比</div>
           <div class="card-ratio">目标 ≤30%</div>
         </div>
       </div>
@@ -83,38 +83,26 @@
       <el-card>
         <div class="filter-row">
           <div class="filter-item">
-            <label>年份：</label>
-            <el-select v-model="filters.year" placeholder="选择年份" @change="loadData">
-              <el-option label="2024年" value="2024" />
-              <el-option label="2023年" value="2023" />
-              <el-option label="2022年" value="2022" />
-              <el-option label="2021年" value="2021" />
-              <el-option label="2020年" value="2020" />
-            </el-select>
-          </div>
-          <div class="filter-item">
-            <label>费用类型：</label>
-            <el-select v-model="filters.costType" placeholder="选择费用类型" @change="loadData">
-              <el-option label="全部" value="" />
-              <el-option label="门诊费用" value="outpatient" />
-              <el-option label="住院费用" value="inpatient" />
-              <el-option label="药品费用" value="medicine" />
-              <el-option label="检查费用" value="examination" />
-            </el-select>
-          </div>
-          <div class="filter-item">
             <label>医院等级：</label>
-            <el-select v-model="filters.hospitalLevel" placeholder="选择医院等级" @change="loadData">
+            <el-select v-model="filters.hospitalLevel" placeholder="选择医院等级" @change="loadFilteredData">
               <el-option label="全部" value="" />
-              <el-option label="三级甲等" value="3A" />
-              <el-option label="三级乙等" value="3B" />
-              <el-option label="二级甲等" value="2A" />
-              <el-option label="二级乙等" value="2B" />
-              <el-option label="一级" value="1" />
+              <el-option label="部属" value="部属" />
+              <el-option label="省辖市属" value="省辖市属" />
+              <el-option label="县辖市属" value="县辖市属" />
+              <el-option label="县属" value="县属" />
             </el-select>
+          </div>
+          <div class="filter-item">
+            <label>最低费用：</label>
+            <el-input-number
+                v-model="filters.totalFee"
+                placeholder="最低费用"
+                @change="loadFilteredData"
+                :min="0"
+            />
           </div>
           <div class="filter-actions">
-            <el-button type="primary" @click="loadData">
+            <el-button type="primary" @click="loadFilteredData">
               <el-icon><Search /></el-icon>
               查询
             </el-button>
@@ -122,6 +110,275 @@
           </div>
         </div>
       </el-card>
+    </div>
+
+    <!-- 标签页切换 -->
+    <div class="tabs-section">
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="门诊费用统计" name="outpatient">
+          <!-- 门诊费用表格 -->
+          <div class="table-section">
+            <el-card>
+              <template #header>
+                <div class="table-header">
+                  <h4>门诊费用统计</h4>
+                  <div class="table-actions">
+                    <el-button size="small" @click="exportTableData('outpatient')">
+                      <el-icon><Download /></el-icon>
+                      导出数据
+                    </el-button>
+                  </div>
+                </div>
+              </template>
+
+              <el-table
+                  :data="outpatientData.tableData"
+                  :loading="outpatientData.loading"
+                  stripe
+                  style="width: 100%"
+              >
+                <el-table-column prop="hospitalLevel" label="医院级别" width="120" />
+                <el-table-column prop="totalFee" label="门诊总费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.totalFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="medicineFee" label="药品费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.medicineFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="examFee" label="检查费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.examFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="treatmentFee" label="治疗费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.treatmentFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="medicineRatio" label="药品费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    <el-tag
+                        :type="getMedicineRatioTagType(row.medicineRatio)"
+                        size="small"
+                    >
+                      {{ row.medicineRatio || 0 }}%
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="examRatio" label="检查费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.examRatio || 0 }}%
+                  </template>
+                </el-table-column>
+                <el-table-column prop="treatmentRatio" label="治疗费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.treatmentRatio || 0 }}%
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 分页 -->
+              <div class="pagination-wrapper">
+                <el-pagination
+                    :current-page="outpatientData.pageInfo.index + 1"
+                    :page-size="outpatientData.pageInfo.size"
+                    :total="outpatientData.pageInfo.total"
+                    :page-sizes="[10, 20, 50, 100]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @current-change="handleOutpatientPageChange"
+                    @size-change="handleOutpatientSizeChange"
+                />
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+
+        <el-tab-pane label="住院费用统计" name="inpatient">
+          <!-- 住院费用表格 -->
+          <div class="table-section">
+            <el-card>
+              <template #header>
+                <div class="table-header">
+                  <h4>住院费用统计</h4>
+                  <div class="table-actions">
+                    <el-button size="small" @click="exportTableData('inpatient')">
+                      <el-icon><Download /></el-icon>
+                      导出数据
+                    </el-button>
+                  </div>
+                </div>
+              </template>
+
+              <el-table
+                  :data="inpatientData.tableData"
+                  :loading="inpatientData.loading"
+                  stripe
+                  style="width: 100%"
+              >
+                <el-table-column prop="hospitalLevel" label="医院级别" width="120" />
+                <el-table-column prop="totalFee" label="住院总费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.totalFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="bedFee" label="床位费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.bedFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="medicineFee" label="药品费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.medicineFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="treatmentFee" label="治疗费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.treatmentFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="bedRatio" label="床位费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.bedRatio || 0 }}%
+                  </template>
+                </el-table-column>
+                <el-table-column prop="medicineRatio" label="药品费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    <el-tag
+                        :type="getMedicineRatioTagType(row.medicineRatio)"
+                        size="small"
+                    >
+                      {{ row.medicineRatio || 0 }}%
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="treatmentRatio" label="治疗费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.treatmentRatio || 0 }}%
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 分页 -->
+              <div class="pagination-wrapper">
+                <el-pagination
+                    :current-page="inpatientData.pageInfo.index + 1"
+                    :page-size="inpatientData.pageInfo.size"
+                    :total="inpatientData.pageInfo.total"
+                    :page-sizes="[10, 20, 50, 100]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @current-change="handleInpatientPageChange"
+                    @size-change="handleInpatientSizeChange"
+                />
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+
+        <el-tab-pane label="费用结构对比" name="comparison">
+          <!-- 费用结构对比分析 -->
+          <div class="comparison-section">
+            <el-card>
+              <template #header>
+                <div class="table-header">
+                  <h4>费用结构对比分析</h4>
+                  <div class="table-actions">
+                    <el-button size="small" @click="exportTableData('comparison')">
+                      <el-icon><Download /></el-icon>
+                      导出数据
+                    </el-button>
+                  </div>
+                </div>
+              </template>
+
+              <!-- 对比分析表格 -->
+              <el-table
+                  :data="comparisonData.comparisonData"
+                  :loading="comparisonData.loading"
+                  stripe
+                  style="width: 100%"
+              >
+                <el-table-column prop="hospitalLevel" label="医院级别" width="120" />
+                <el-table-column prop="totalFee" label="总费用" width="120" align="right">
+                  <template #default="{ row }">
+                    ¥{{ (row.totalFee || 0).toFixed(2) }}万
+                  </template>
+                </el-table-column>
+                <el-table-column prop="medicineRatio" label="药品费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    <el-tag
+                        :type="getMedicineRatioTagType(row.medicineRatio)"
+                        size="small"
+                    >
+                      {{ row.medicineRatio || 0 }}%
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="examRatio" label="检查费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.examRatio || 0 }}%
+                  </template>
+                </el-table-column>
+                <el-table-column prop="treatmentRatio" label="治疗费用占比" width="130" align="center">
+                  <template #default="{ row }">
+                    {{ row.treatmentRatio || 0 }}%
+                  </template>
+                </el-table-column>
+                <el-table-column prop="ranking" label="费用排名" width="100" align="center">
+                  <template #default="{ row }">
+                    <el-tag type="primary" size="small">
+                      第{{ row.ranking || 0 }}名
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 分析结果 -->
+              <div class="analysis-section" v-if="comparisonData.analysis">
+                <el-divider content-position="left">分析结果</el-divider>
+                <el-row :gutter="20">
+                  <el-col :span="6">
+                    <div class="analysis-item">
+                      <div class="analysis-label">平均总费用</div>
+                      <div class="analysis-value">¥{{ (comparisonData.analysis.averageTotalFee || 0).toFixed(2) }}万</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="analysis-item">
+                      <div class="analysis-label">药品费用占比区间</div>
+                      <div class="analysis-value">{{ comparisonData.analysis.medicineRatioRange || '暂无数据' }}</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="analysis-item">
+                      <div class="analysis-label">费用最高级别</div>
+                      <div class="analysis-value">{{ comparisonData.analysis.highestCostLevel || '暂无数据' }}</div>
+                    </div>
+                  </el-col>
+                  <el-col :span="6">
+                    <div class="analysis-item">
+                      <div class="analysis-label">费用最低级别</div>
+                      <div class="analysis-value">{{ comparisonData.analysis.lowestCostLevel || '暂无数据' }}</div>
+                    </div>
+                  </el-col>
+                </el-row>
+                <div class="analysis-trend">
+                  <div class="analysis-label">费用趋势：</div>
+                  <div class="analysis-value">{{ comparisonData.analysis.costTrend || '暂无数据' }}</div>
+                </div>
+                <div class="analysis-recommendations">
+                  <div class="analysis-label">优化建议：</div>
+                  <ul>
+                    <li v-for="rec in (comparisonData.analysis.recommendations || [])" :key="rec">{{ rec }}</li>
+                  </ul>
+                </div>
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
 
     <!-- 图表区域 -->
@@ -140,18 +397,24 @@
           </div>
           <div class="chart-content">
             <PieChart
-              v-if="structureChartType === 'pie'"
-              :data="structureChartData"
-              height="100%"
-              :show-legend="true"
-              :donut="true"
+                v-if="structureChartType === 'pie' && structureChartData.length"
+                :data="structureChartData"
+                title=""
+                height="300px"
+                :is-donut="true"
+                :inner-radius="'40%'"
+                :radius="'70%'"
+                :show-percentage="true"
+                class="chart"
             />
             <BarChart
-              v-else
-              :data="structureChartData"
-              height="100%"
-              :show-legend="false"
-              :color-scheme="['#5470c6', '#91cc75', '#fac858', '#ee6666']"
+                v-else-if="structureChartType === 'bar' && structureChartData.length"
+                :data="structureChartData.map(item => item.value)"
+                :x-axis-data="structureChartData.map(item => item.name)"
+                title=""
+                height="300px"
+                :y-axis-formatter="(value) => `${value}%`"
+                class="chart"
             />
           </div>
         </div>
@@ -159,380 +422,494 @@
         <!-- 费用趋势分析 -->
         <div class="chart-card">
           <div class="chart-header">
-            <h4>费用趋势分析</h4>
-            <div class="chart-controls">
-              <el-select v-model="trendPeriod" @change="updateTrendChart">
-                <el-option label="近3年" value="3年" />
-                <el-option label="近5年" value="5年" />
-                <el-option label="近10年" value="10年" />
-              </el-select>
-            </div>
+            <h4>不同等级医院门诊费用趋势分析</h4>
           </div>
           <div class="chart-content">
             <LineChart
-              :data="trendChartData"
-              :x-axis-data="trendXAxisData"
-              height="100%"
-              :smooth="true"
-              :area="true"
-              :color-scheme="['#5470c6', '#91cc75', '#fac858']"
+                :data="outpatientData.tableData.map(item => Number(item.totalFee))"
+                :x-axis-data="outpatientData.tableData.map(item => item.hospitalLevel)"
+                title=""
+                height="300px"
+                :smooth="true"
+                :show-area="true"
+                :area-opacity="0.3"
+                :colors="['#5470c6']"
+                :y-axis-formatter="(value) => `${value}万`"
+                class="chart trend-chart"
             />
           </div>
         </div>
       </div>
 
-      <!-- 费用对比分析 -->
-      <div class="chart-row">
+      <!-- 费用对比分析图表 -->
+      <div class="chart-row" v-if="activeTab.value === 'comparison'">
         <div class="chart-card full-width">
           <div class="chart-header">
-            <h4>费用对比分析</h4>
+            <h4>医院级别费用对比</h4>
             <div class="chart-controls">
-              <el-button-group>
-                <el-button 
-                  :type="comparisonType === 'hospital' ? 'primary' : ''"
-                  @click="comparisonType = 'hospital'; updateComparisonChart()"
-                >
-                  医院对比
-                </el-button>
-                <el-button 
-                  :type="comparisonType === 'department' ? 'primary' : ''"
-                  @click="comparisonType = 'department'; updateComparisonChart()"
-                >
-                  科室对比
-                </el-button>
-                <el-button 
-                  :type="comparisonType === 'region' ? 'primary' : ''"
-                  @click="comparisonType = 'region'; updateComparisonChart()"
-                >
-                  区域对比
-                </el-button>
-              </el-button-group>
+              <el-radio-group v-model="comparisonChartType" @change="updateComparisonChart">
+                <el-radio-button value="bar">柱状图</el-radio-button>
+                <el-radio-button value="stacked">堆叠图</el-radio-button>
+              </el-radio-group>
             </div>
           </div>
           <div class="chart-content">
             <BarChart
-              :data="comparisonChartData"
-              height="100%"
-              :show-legend="true"
-              :horizontal="comparisonType === 'hospital'"
-              :color-scheme="['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de']"
+                :data="comparisonChartData"
+                :x-axis-data="comparisonXAxisData"
+                :height="400"
+                :show-legend="true"
+                :horizontal="true"
+                :color-scheme="['#5470c6', '#91cc75', '#fac858', '#ee6666']"
             />
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 数据表格 -->
-    <div class="table-section">
-      <el-card>
-        <template #header>
-          <div class="table-header">
-            <h4>详细数据</h4>
-            <div class="table-actions">
-              <el-button size="small" @click="exportTableData">
-                <el-icon><Download /></el-icon>
-                导出数据
-              </el-button>
-            </div>
-          </div>
-        </template>
-        
-        <el-table 
-          :data="costList" 
-          :loading="tableLoading"
-          stripe
-          style="width: 100%"
-        >
-          <el-table-column prop="year" label="年份" width="80" />
-          <el-table-column prop="hospitalName" label="医疗机构" min-width="200" />
-          <el-table-column prop="hospitalLevel" label="医院等级" width="100" />
-          <el-table-column prop="totalRevenue" label="总收入(万元)" width="120" align="right">
-            <template #default="{ row }">
-              {{ (row.totalRevenue / 10000).toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="outpatientRevenue" label="门诊收入(万元)" width="130" align="right">
-            <template #default="{ row }">
-              {{ (row.outpatientRevenue / 10000).toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="inpatientRevenue" label="住院收入(万元)" width="130" align="right">
-            <template #default="{ row }">
-              {{ (row.inpatientRevenue / 10000).toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="avgOutpatientCost" label="门诊均费" width="100" align="right">
-            <template #default="{ row }">
-              ¥{{ row.avgOutpatientCost?.toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="avgInpatientCost" label="住院均费" width="100" align="right">
-            <template #default="{ row }">
-              ¥{{ row.avgInpatientCost?.toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="medicineRatio" label="药品占比" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag 
-                :type="getMedicineRatioTagType(row.medicineRatio)"
-                size="small"
-              >
-                {{ row.medicineRatio }}%
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="120" fixed="right">
-            <template #default="{ row }">
-              <el-button link size="small" @click="showCostDetail(row)">
-                <el-icon><View /></el-icon>
-                详情
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <!-- 分页 -->
-        <div class="pagination-wrapper">
-          <el-pagination
-            v-model:current-page="pagination.page"
-            v-model:page-size="pagination.size"
-            :page-sizes="[10, 20, 50, 100]"
-            :total="pagination.total"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
-        </div>
-      </el-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { fetchOutpatientCostStatistics, fetchInpatientCostStatistics, fetchCostStructureComparison } from '@/api/cost'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Download,
-  DataAnalysis,
-  Refresh,
-  Search,
-  Money,
-  User,
-  House,
-  TrendCharts,
-  ArrowUp,
-  ArrowDown,
-  View
+  Download, DataAnalysis, Refresh, Search, Money, User, House,
+  TrendCharts, ArrowUp, ArrowDown, View
 } from '@element-plus/icons-vue'
 import { PieChart, BarChart, LineChart } from '@/components/charts'
-import { statisticsApi } from '@/api/statistics'
-
-// 响应式数据
-const loading = ref(false)
-const tableLoading = ref(false)
-
-// 筛选条件
-const filters = reactive({
-  year: '2024',
-  costType: '',
-  hospitalLevel: ''
-})
-
-// 图表类型控制
+import {
+  convertWanToYuan,
+  formatAmount,
+  calculateAverageFee,
+  calculateAverageRatio
+} from '@/utils/cost-utils'
+// 所有响应式变量和数据定义在这里
+const activeTab = ref('outpatient')
 const structureChartType = ref('pie')
 const trendPeriod = ref('5年')
-const comparisonType = ref('hospital')
+const comparisonChartType = ref('bar')
+
+const filters = reactive({
+  hospitalLevel: '',
+  totalFee: null
+})
+
+const outpatientData = reactive({
+  tableData: [],
+  pageInfo: { index: 0, size: 20, total: 0 },
+  aggregations: {},
+  loading: false
+})
+
+const inpatientData = reactive({
+  tableData: [],
+  pageInfo: { index: 0, size: 20, total: 0 },
+  aggregations: {},
+  loading: false
+})
+
+// 费用结构对比数据
+const comparisonData = reactive({
+  comparisonData: [],
+  analysis: {},
+  loading: false
+})
 
 // 概览数据
 const overviewData = reactive({
-  totalRevenue: 45600000000, // 456亿
-  avgOutpatientCost: 285.6,
-  avgInpatientCost: 8950.2,
-  medicineRatio: 28.5,
+  totalRevenue: 0,
+  outpatientRevenue: 0,
+  inpatientRevenue: 0,
+  avgOutpatientCost: 0,
+  avgInpatientCost: 0,
+  medicineRatio: 0,
+  totalRecords: 0,
   revenueGrowth: 6.8,
   outpatientCostGrowth: 4.2,
-  inpatientCostGrowth: 5.1
+  inpatientCostGrowth: 5.1,
+  recordGrowth: 0
 })
 
 // 图表数据
-const structureChartData = ref([
-  { name: '药品费用', value: 28.5, color: '#5470c6' },
-  { name: '检查费用', value: 22.3, color: '#91cc75' },
-  { name: '治疗费用', value: 18.7, color: '#fac858' },
-  { name: '材料费用', value: 15.2, color: '#ee6666' },
-  { name: '其他费用', value: 15.3, color: '#73c0de' }
-])
-
+const structureChartData = ref([])
 const trendChartData = ref([])
 const trendXAxisData = ref([])
 const comparisonChartData = ref([])
+const comparisonXAxisData = ref([])
 
-// 表格数据
-const costList = ref([])
-
-// 分页
-const pagination = reactive({
-  page: 1,
-  size: 20,
-  total: 0
-})
-
-// 加载数据
-const loadData = async () => {
-  try {
-    loading.value = true
-    tableLoading.value = true
-
-    // 构建查询参数
-    const queryParams = {
-      filters: {
-        year: { eq: parseInt(filters.year) }
-      },
-      sort: [
-        { field: 'year', order: 'desc' },
-        { field: 'totalRevenue', order: 'desc' }
-      ],
-      pageInfo: {
-        index: pagination.page - 1,
-        size: pagination.size
-      }
+//updateStructureChart 函数定义
+const updateStructureChart = () => {
+  // 如果后端有结构对比数据，优先用后端数据
+  if (comparisonData.comparisonData && comparisonData.comparisonData.length > 0) {
+    const row = comparisonData.comparisonData[0]
+    const medicine = Number(row.medicineRatio ?? row.medicine_ratio ?? 0)
+    const exam = Number(row.examRatio ?? row.exam_ratio ?? 0)
+    const treatment = Number(row.treatmentRatio ?? row.treatment_ratio ?? 0)
+    // 其他 = 100 - 三项之和，最小为0
+    let other = 100 - medicine - exam - treatment
+    if (other < 0) other = 0
+    structureChartData.value = [
+      { name: '药品费用', value: medicine },
+      { name: '检查费用', value: exam },
+      { name: '治疗费用', value: treatment },
+      { name: '其他', value: other }
+    ]
+    if (row.bedRatio !== undefined || row.bed_ratio !== undefined) {
+      structureChartData.value.unshift({ name: '床位费用', value: Number(row.bedRatio ?? row.bed_ratio ?? 0) })
     }
+    return
+  }
+  // 如果没有后端数据，始终展示静态示例数据
+  structureChartData.value = [
+    { name: '药品费用', value: 47.7 },
+    { name: '检查费用', value: 32.8 },
+    { name: '治疗费用', value: 10.8 },
+    { name: '其他', value: 8.7 }
+  ]
+}
 
-    // 添加可选过滤条件
-    if (filters.costType) {
-      queryParams.filters.costType = { eq: filters.costType }
+// ====== 自动刷新结构图表的 watch，必须放在 updateStructureChart 之后 ======
+watch(
+    [activeTab, () => outpatientData.tableData, () => inpatientData.tableData],
+    () => {
+      updateStructureChart()
+    },
+    { immediate: true, deep: true }
+)
+
+// 加载门诊费用数据
+const loadOutpatientData = async () => {
+  outpatientData.loading = true
+  try {
+    const params = {
+      filters: {},
+      sort: [{ field: 'totalFee', order: 'desc' }],
+      pageInfo: outpatientData.pageInfo
     }
     if (filters.hospitalLevel) {
-      queryParams.filters.hospitalLevel = { eq: filters.hospitalLevel }
+      params.filters.hospitalLevel = { eq: filters.hospitalLevel }
     }
+    if (filters.totalFee) {
+      params.filters.totalFee = { gte: filters.totalFee }
+    }
+    const res = await fetchOutpatientCostStatistics(params)
+    if (res.status === 0) {
+      outpatientData.tableData = res.data.rows || []
+      outpatientData.pageInfo = res.data.pageInfo || { index: 0, size: 20, total: 0 }
+      outpatientData.aggregations = res.data.aggregations || {}
+      console.log('后端门诊接口原始数据', res.data.rows)
+      // 更新门诊费用相关概览数据
+      if (res.data.aggregations?.total_stats) {
+        const stats = res.data.aggregations.total_stats
+        overviewData.outpatientRevenue = stats.sum || 0 // 保持万为单位
+        overviewData.totalRecords = stats.count || 0
 
-    // 根据费用类型调用不同的API
-    let response
-    if (filters.costType === 'outpatient') {
-      response = await statisticsApi.getOutpatientCostStats(queryParams)
-    } else if (filters.costType === 'inpatient') {
-      response = await statisticsApi.getInpatientCostStats(queryParams)
-    } else {
-      // 默认获取门诊费用统计
-      response = await statisticsApi.getOutpatientCostStats(queryParams)
-    }
-    
-    if (response.code === 200) {
-      costList.value = response.data.rows || []
-      pagination.total = response.data.pageInfo?.total || 0
-      
-      // 更新概览数据
-      if (response.data.aggregations) {
-        updateOverviewData(response.data.aggregations)
+        // 计算平均门诊费用（转换为元用于显示）
+        if (stats.avg) {
+          overviewData.avgOutpatientCost = stats.avg * 10000 // 转换为元
+        }
+      } else if (outpatientData.tableData.length > 0) {
+        // 如果没有聚合数据，从表格数据计算
+        overviewData.outpatientRevenue = outpatientData.tableData.reduce((sum, item) => sum + (item.totalFee || 0), 0)
+        overviewData.avgOutpatientCost = calculateAverageFee(outpatientData.tableData, 'totalFee')
+        overviewData.totalRecords = outpatientData.tableData.length
       }
+
+      // 计算总费用 = 门诊费用 + 住院费用
+      overviewData.totalRevenue = overviewData.outpatientRevenue + overviewData.inpatientRevenue
+
+      // 更新图表数据
+      updateStructureChart()
+      updateTrendChart()
+
+      // 根据当前选项卡更新医药费用占比
+      updateMedicineRatio()
+
+      console.log('门诊费用数据加载成功:', res.data)
+    } else {
+      ElMessage.error(res.message || '获取门诊费用数据失败')
+      console.error('门诊费用数据加载失败:', res)
     }
-
-    // 加载费用结构对比数据
-    await loadCostComparison()
-
   } catch (error) {
-    ElMessage.error('加载数据失败，请检查后端服务是否正常运行')
-    console.error('加载数据失败:', error)
+    console.error('获取门诊费用数据错误:', error)
+    ElMessage.error('网络错误，请稍后重试')
   } finally {
-    loading.value = false
-    tableLoading.value = false
+    outpatientData.loading = false
+  }
+}
+
+// 加载住院费用数据
+const loadInpatientData = async () => {
+  inpatientData.loading = true
+  try {
+    const params = {
+      filters: {},
+      sort: [{ field: 'totalFee', order: 'desc' }],
+      pageInfo: inpatientData.pageInfo
+    }
+    if (filters.hospitalLevel) {
+      params.filters.hospitalLevel = { eq: filters.hospitalLevel }
+    }
+    if (filters.totalFee) {
+      params.filters.totalFee = { gte: filters.totalFee }
+    }
+    const res = await fetchInpatientCostStatistics(params)
+    if (res.status === 0) {
+      inpatientData.tableData = res.data.rows || []
+      inpatientData.pageInfo = res.data.pageInfo || { index: 0, size: 20, total: 0 }
+      inpatientData.aggregations = res.data.aggregations || {}
+      console.log('后端住院接口原始数据', res.data.rows)
+      // 更新住院费用相关概览数据
+      if (res.data.aggregations?.total_stats) {
+        const stats = res.data.aggregations.total_stats
+        overviewData.inpatientRevenue = stats.sum || 0 // 保持万为单位
+        overviewData.totalRecords = stats.count || 0
+
+        // 计算平均住院费用（转换为元用于显示）
+        if (stats.avg) {
+          overviewData.avgInpatientCost = stats.avg * 10000 // 转换为元
+        }
+      } else if (inpatientData.tableData.length > 0) {
+        // 如果没有聚合数据，从表格数据计算
+        overviewData.inpatientRevenue = inpatientData.tableData.reduce((sum, item) => sum + (item.totalFee || 0), 0)
+        overviewData.avgInpatientCost = calculateAverageFee(inpatientData.tableData, 'totalFee')
+        overviewData.totalRecords = inpatientData.tableData.length
+      }
+
+      // 计算总费用 = 门诊费用 + 住院费用
+      overviewData.totalRevenue = overviewData.outpatientRevenue + overviewData.inpatientRevenue
+
+      // 更新图表数据
+      updateStructureChart()
+      updateTrendChart()
+
+      // 根据当前选项卡更新医药费用占比
+      updateMedicineRatio()
+
+      console.log('住院费用数据加载成功:', res.data)
+    } else {
+      ElMessage.error(res.message || '获取住院费用数据失败')
+      console.error('住院费用数据加载失败:', res)
+    }
+  } catch (error) {
+    console.error('获取住院费用数据错误:', error)
+    ElMessage.error('网络错误，请稍后重试')
+  } finally {
+    inpatientData.loading = false
   }
 }
 
 // 加载费用结构对比数据
-const loadCostComparison = async () => {
+const loadComparisonData = async () => {
+  comparisonData.loading = true
   try {
     const params = {
-      comparisonType: comparisonType.value,
-      year: parseInt(filters.year)
+      compareType: 'hospital_level',
+      costType: activeTab.value === 'inpatient' ? 'inpatient' : 'outpatient'
     }
 
-    const response = await statisticsApi.getCostStructureComparison(params)
-    
-    if (response.code === 200) {
-      updateComparisonChartData(response.data)
-      updateTrendChartData(response.data)
+    const res = await fetchCostStructureComparison(params)
+
+    if (res.status === 0) {
+      comparisonData.comparisonData = res.data.comparisonData || []
+      comparisonData.analysis = res.data.analysis || {}
+
+      // 更新对比图表
+      updateComparisonChart()
+
+      console.log('费用结构对比数据加载成功:', res.data)
+    } else {
+      ElMessage.error(res.message || '获取费用结构对比数据失败')
+      console.error('费用结构对比数据加载失败:', res)
     }
   } catch (error) {
-    console.error('加载费用结构对比数据失败:', error)
+    console.error('获取费用结构对比数据错误:', error)
+    ElMessage.error('网络错误，请稍后重试')
+  } finally {
+    comparisonData.loading = false
   }
 }
 
-// 更新概览数据
-const updateOverviewData = (aggregations) => {
-  if (aggregations.total_stats) {
-    const stats = aggregations.total_stats
-    overviewData.totalRevenue = stats.totalRevenue || 0
-    overviewData.avgOutpatientCost = stats.avgOutpatientCost || 0
-    overviewData.avgInpatientCost = stats.avgInpatientCost || 0
-    overviewData.medicineRatio = stats.medicineRatio || 0
+// 标签页切换处理
+const handleTabChange = (tab) => {
+  activeTab.value = tab
+  if (tab === 'outpatient') {
+    loadOutpatientData()
+  } else if (tab === 'inpatient') {
+    loadInpatientData()
+  } else if (tab === 'comparison') {
+    loadComparisonData()
+  }
+
+  // 根据当前选项卡更新医药费用占比
+  updateMedicineRatio()
+}
+
+// 更新医药费用占比
+const updateMedicineRatio = () => {
+  if (activeTab.value === 'outpatient' && outpatientData.tableData.length > 0) {
+    overviewData.medicineRatio = calculateAverageRatio(outpatientData.tableData, 'medicineRatio').toFixed(1)
+  } else if (activeTab.value === 'inpatient' && inpatientData.tableData.length > 0) {
+    overviewData.medicineRatio = calculateAverageRatio(inpatientData.tableData, 'medicineRatio').toFixed(1)
   }
 }
 
-// 更新对比图表数据
-const updateComparisonChartData = (data) => {
-  switch (comparisonType.value) {
-    case 'hospital':
-      comparisonChartData.value = [
+
+// 门诊费用分页
+const handleOutpatientPageChange = (page) => {
+  outpatientData.pageInfo.index = page - 1
+  loadOutpatientData()
+}
+
+const handleOutpatientSizeChange = (size) => {
+  outpatientData.pageInfo.size = size
+  outpatientData.pageInfo.index = 0
+  loadOutpatientData()
+}
+
+// 住院费用分页
+const handleInpatientPageChange = (page) => {
+  inpatientData.pageInfo.index = page - 1
+  loadInpatientData()
+}
+
+const handleInpatientSizeChange = (size) => {
+  inpatientData.pageInfo.size = size
+  inpatientData.pageInfo.index = 0
+  loadInpatientData()
+}
+
+
+// 通用数据加载方法
+const loadData = () => {
+  if (activeTab.value === 'outpatient') {
+    loadOutpatientData()
+  } else if (activeTab.value === 'inpatient') {
+    loadInpatientData()
+  } else if (activeTab.value === 'comparison') {
+    loadComparisonData()
+  }
+}
+
+// 筛选数据加载方法 - 同时更新门诊和住院数据
+const loadFilteredData = async () => {
+  // 同时加载门诊和住院数据，确保总费用计算正确
+  await Promise.all([
+    loadOutpatientData(),
+    loadInpatientData()
+  ])
+}
+
+// 重置筛选条件
+const resetFilters = () => {
+  Object.assign(filters, {
+    hospitalLevel: '',
+    totalFee: null
+  })
+  loadFilteredData()
+}
+
+// 刷新数据
+const refreshData = () => {
+  loadFilteredData()
+}
+
+// 更新趋势图表
+const updateTrendChart = () => {
+  const currentData = activeTab.value === 'outpatient' ? outpatientData : inpatientData
+
+  if (currentData.aggregations?.year_histogram && currentData.aggregations.year_histogram.length > 0) {
+    // 使用年份作为X轴
+    trendXAxisData.value = currentData.aggregations.year_histogram.map(item => item.key.toString())
+    if (activeTab.value === 'outpatient') {
+      trendChartData.value = [
         {
-          name: '门诊收入',
-          data: data.hospitalComparison?.map(item => ({
-            name: item.hospitalName,
-            value: item.outpatientRevenue || 0
-          })) || []
+          name: '门诊总费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgTotalFee || item.count || 0)
         },
         {
-          name: '住院收入',
-          data: data.hospitalComparison?.map(item => ({
-            name: item.hospitalName,
-            value: item.inpatientRevenue || 0
-          })) || []
-        }
-      ]
-      break
-    case 'department':
-      comparisonChartData.value = [
+          name: '药品费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgMedicineFee || 0)
+        },
         {
-          name: '科室收入',
-          data: data.departmentComparison?.map(item => ({
-            name: item.departmentName,
-            value: item.totalRevenue || 0
-          })) || []
+          name: '检查费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgExamFee || 0)
         }
       ]
-      break
-    case 'region':
-      comparisonChartData.value = [
+    } else if (activeTab.value === 'inpatient') {
+      trendChartData.value = [
         {
-          name: '区域收入',
-          data: data.regionComparison?.map(item => ({
-            name: item.regionName,
-            value: item.totalRevenue || 0
-          })) || []
+          name: '住院总费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgTotalFee || item.count || 0)
+        },
+        {
+          name: '床位费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgBedFee || 0)
+        },
+        {
+          name: '药品费用',
+          data: currentData.aggregations.year_histogram.map(item => item.avgMedicineFee || 0)
         }
       ]
-      break
+    }
+  } else if (activeTab.value === 'outpatient' && outpatientData.tableData.length > 0) {
+    // 没有聚合数据时，直接用rows
+    trendXAxisData.value = outpatientData.tableData.map(item => item.hospitalLevel)
+    trendChartData.value = [
+      {
+        name: '门诊总费用',
+        data: outpatientData.tableData.map(item => item.totalFee)
+      }
+    ]
+  } else if (activeTab.value === 'inpatient' && inpatientData.tableData.length > 0) {
+    trendXAxisData.value = inpatientData.tableData.map(item => item.hospitalLevel)
+    trendChartData.value = [
+      {
+        name: '住院总费用',
+        data: inpatientData.tableData.map(item => item.totalFee)
+      }
+    ]
+  } else {
+    trendXAxisData.value = []
+    trendChartData.value = []
   }
 }
 
-// 更新趋势图表数据
-const updateTrendChartData = (data) => {
-  if (data.trendData) {
-    trendXAxisData.value = data.trendData.map(item => item.year.toString())
-    trendChartData.value = [
-      {
-        name: '门诊收入',
-        data: data.trendData.map(item => item.outpatientRevenue || 0)
-      },
-      {
-        name: '住院收入',
-        data: data.trendData.map(item => item.inpatientRevenue || 0)
-      },
-      {
-        name: '药品收入',
-        data: data.trendData.map(item => item.medicineRevenue || 0)
-      }
-    ]
+// 更新对比图表
+const updateComparisonChart = () => {
+  if (activeTab.value === 'comparison' && comparisonData.comparisonData.length > 0) {
+    // 设置X轴数据（医院级别）
+    comparisonXAxisData.value = comparisonData.comparisonData.map(item => item.hospitalLevel)
+
+    if (comparisonChartType.value === 'bar') {
+      // 柱状图：显示总费用对比
+      comparisonChartData.value = [
+        {
+          name: '总费用',
+          data: comparisonData.comparisonData.map(item => item.totalFee || 0)
+        }
+      ]
+    } else if (comparisonChartType.value === 'stacked') {
+      // 堆叠图：显示费用结构对比
+      comparisonChartData.value = [
+        {
+          name: '药品费用占比',
+          data: comparisonData.comparisonData.map(item => item.medicineRatio || 0)
+        },
+        {
+          name: '检查费用占比',
+          data: comparisonData.comparisonData.map(item => item.examRatio || 0)
+        },
+        {
+          name: '治疗费用占比',
+          data: comparisonData.comparisonData.map(item => item.treatmentRatio || 0)
+        }
+      ]
+    }
+  } else {
+    comparisonXAxisData.value = []
+    comparisonChartData.value = []
   }
 }
 
@@ -543,73 +920,40 @@ const getMedicineRatioTagType = (ratio) => {
   return 'danger'
 }
 
-// 更新结构图表
-const updateStructureChart = () => {
-  // 图表组件会自动重新渲染
-}
-
-// 更新趋势图表
-const updateTrendChart = () => {
-  loadCostComparison()
-}
-
-// 更新对比图表
-const updateComparisonChart = () => {
-  loadCostComparison()
-}
-
-// 重置筛选条件
-const resetFilters = () => {
-  Object.assign(filters, {
-    year: '2024',
-    costType: '',
-    hospitalLevel: ''
-  })
-  loadData()
-}
-
-// 分页处理
-const handleSizeChange = (size) => {
-  pagination.size = size
-  pagination.page = 1
-  loadData()
-}
-
-const handleCurrentChange = (page) => {
-  pagination.page = page
-  loadData()
-}
-
-// 导出数据
+// 导出相关方法
 const exportData = () => {
   ElMessage.success('导出功能开发中')
 }
 
-// 导出表格数据
-const exportTableData = () => {
-  ElMessage.success('导出表格数据功能开发中')
+const exportTableData = (type) => {
+  ElMessage.success(`导出${type}数据功能开发中`)
 }
 
-// 显示费用分析
 const showCostAnalysis = () => {
   ElMessage.info('费用分析详情功能开发中')
 }
 
-// 显示费用详情
-const showCostDetail = (row) => {
-  ElMessage.info(`查看${row.hospitalName}费用详情功能开发中`)
-}
-
-// 刷新数据
-const refreshData = () => {
-  loadData()
-}
-
-// 生命周期
+// ========== 生命周期 ==========
 onMounted(async () => {
   await nextTick()
-  loadData()
+  // 同时加载门诊和住院数据，确保总费用计算正确
+  await Promise.all([
+    loadOutpatientData(),
+    loadInpatientData()
+  ])
+  loadComparisonData()
 })
+
+// 调试输出门诊费用折线图数据
+watch(
+  () => outpatientData.tableData,
+  (newVal) => {
+    console.log('门诊tableData:', newVal)
+    console.log('门诊总费用数组:', newVal.map(item => item.totalFee))
+    console.log('医院等级数组:', newVal.map(item => item.hospitalLevel))
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <style scoped>
@@ -821,29 +1165,77 @@ onMounted(async () => {
   .cost-stats {
     padding: 16px;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 16px;
     text-align: center;
   }
-  
+
   .overview-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .chart-row {
     grid-template-columns: 1fr;
   }
-  
+
   .filter-row {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-actions {
     margin-left: 0;
     justify-content: center;
   }
+}
+.analysis-section {
+  margin-top: 20px;
+}
+
+.analysis-item {
+  text-align: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.analysis-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.analysis-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.analysis-trend {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+}
+
+.analysis-recommendations {
+  margin-top: 20px;
+}
+
+.analysis-recommendations ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.analysis-recommendations li {
+  margin: 4px 0;
+  color: #374151;
+}
+
+/* 标签页样式 */
+.tabs-section {
+  margin-bottom: 20px;
 }
 </style>

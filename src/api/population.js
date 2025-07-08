@@ -186,7 +186,7 @@ export const getPopulationOverview = async (year = null) => {
     const filters = year ? { year: { eq: year } } : {}
     const params = {
       filters,
-      pageInfo: { index: 0, size: 1 }
+      pageInfo: { pageNum: 1, pageSize: 1 }
     }
 
     // 并行请求多个API获取概览数据
@@ -251,8 +251,8 @@ export const getPopulationTrend = async (params = {}) => {
       filters: {
         year: { gte: startYear, lte: currentYear }
       },
-      sort: [{ field: 'year', order: 'asc' }],
-      pageInfo: { index: 0, size: period }
+      sort: [{ field: 'year', direction: 'asc' }],
+      pageInfo: { pageNum: 1, pageSize: period }
     }
 
     // 获取基础人口数据

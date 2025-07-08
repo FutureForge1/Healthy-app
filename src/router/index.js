@@ -25,6 +25,9 @@ const BedStats = () => import('../views/statistics/BedStats.vue')
 const ServiceStats = () => import('../views/statistics/ServiceStats.vue')
 const CostStats = () => import('../views/statistics/CostStats.vue')
 
+// 高级分析模块 (懒加载)
+const PredictionAnalysis = () => import('../views/analytics/PredictionAnalysis.vue')
+
 // 数据可视化模块 (懒加载)
 const ChartManagement = () => import('../views/visualization/ChartManagement.vue')
 
@@ -37,8 +40,8 @@ const QualityCheck = () => import('../views/data/QualityCheck.vue')
 const AuditSystem = () => import('../views/audit/AuditSystem.vue')
 const OperationLogs = () => import('../views/audit/OperationLogs.vue')
 
-// 3D地图
-const Map3D = () => import('../views/map/Map3D.vue')
+// 3D可视化
+const MapboxWalkingDemo = () => import('../views/MapboxWalkingDemo.vue')
 
 // 侧边栏演示
 const SidebarDemo = () => import('../views/SidebarDemo.vue')
@@ -96,13 +99,13 @@ const router = createRouter({
           }
         },
 
-        // 3D地图
+        // 3D可视化
         {
-          path: 'map',
-          name: 'map3d',
-          component: Map3D,
+          path: 'mapbox-walking',
+          name: 'mapbox-walking',
+          component: MapboxWalkingDemo,
           meta: {
-            title: '成都3D地图',
+            title: '3D可视化',
             icon: 'map',
             roles: ['ADMIN', 'ANALYST', 'RESEARCHER']
           }
@@ -222,6 +225,19 @@ const router = createRouter({
             title: '医疗费用统计',
             icon: 'data-analysis',
             roles: ['ADMIN', 'ANALYST', 'RESEARCHER']
+          }
+        },
+
+        // 高级分析模块 - 仅数据分析师可访问
+        {
+          path: 'analytics/prediction',
+          name: 'prediction-analysis',
+          component: PredictionAnalysis,
+          meta: {
+            title: '🔮 预测分析',
+            icon: 'trend-charts',
+            roles: ['ANALYST'], // 仅数据分析师可访问
+            description: '基于机器学习的时间序列预测分析'
           }
         },
 

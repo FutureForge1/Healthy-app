@@ -56,19 +56,7 @@
               <div class="menu-indicator" v-if="isActive('/app/dashboard')"></div>
             </div>
 
-            <!-- 3D地图 -->
-            <div
-              class="menu-item"
-              :class="{ 'active': isActive('/app/map') }"
-              @click="navigateTo('/app/map')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
-            >
-              <div class="menu-icon">
-                <el-icon><MapLocation /></el-icon>
-              </div>
-              <span class="menu-text" v-show="!isCollapsed">3D地图</span>
-              <div class="menu-indicator" v-if="isActive('/app/map')"></div>
-            </div>
+            <!-- 已删除3D地图相关菜单项 -->
 
 
 
@@ -155,6 +143,34 @@
               <span class="menu-text" v-show="!isCollapsed">医疗费用统计分析</span>
               <div class="menu-indicator" v-if="isActive('/app/statistics/cost')"></div>
             </div>
+
+            <!-- 预测分析 - 仅数据分析师可见 -->
+            <div
+              class="menu-item prediction-menu"
+              :class="{ 'active': isActive('/app/analytics/prediction') }"
+              @click="navigateTo('/app/analytics/prediction')"
+              v-if="hasPermission(['ANALYST'])"
+            >
+              <div class="menu-icon">
+                <el-icon><TrendCharts /></el-icon>
+              </div>
+              <span class="menu-text" v-show="!isCollapsed">🔮 预测分析</span>
+              <div class="menu-indicator" v-if="isActive('/app/analytics/prediction')"></div>
+            </div>
+
+            <!-- 3D可视化 -->
+            <div
+              class="menu-item"
+              :class="{ 'active': isActive('/app/mapbox-walking') }"
+              @click="navigateTo('/app/mapbox-walking')"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+            >
+              <div class="menu-icon">
+                <el-icon><View /></el-icon>
+              </div>
+              <span class="menu-text" v-show="!isCollapsed">3D可视化</span>
+              <div class="menu-indicator" v-if="isActive('/app/mapbox-walking')"></div>
+            </div>
           </div>
 
           <!-- 日志审计 -->
@@ -219,7 +235,10 @@ import {
   Expand,
   Fold,
   QuestionFilled,
-  Menu
+  Menu,
+  Position,
+  TrendCharts,
+  User
 } from '@element-plus/icons-vue'
 
 // Props
@@ -813,6 +832,32 @@ onMounted(() => {
   z-index: 1000;
   margin-left: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 预测分析菜单特殊样式 */
+.prediction-menu {
+  position: relative;
+  background: linear-gradient(135deg, rgba(103, 58, 183, 0.1) 0%, rgba(63, 81, 181, 0.1) 100%);
+  border-left: 3px solid #673ab7;
+  margin: 8px 0;
+}
+
+.prediction-menu:hover {
+  background: linear-gradient(135deg, rgba(103, 58, 183, 0.2) 0%, rgba(63, 81, 181, 0.2) 100%);
+  transform: translateX(4px);
+}
+
+.prediction-menu.active {
+  background: linear-gradient(135deg, #673ab7 0%, #3f51b5 100%);
+  color: white;
+}
+
+.prediction-menu .menu-icon {
+  color: #673ab7;
+}
+
+.prediction-menu.active .menu-icon {
+  color: white;
 }
 
 /* 滚动条样式 */

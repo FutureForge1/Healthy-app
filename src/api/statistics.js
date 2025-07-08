@@ -186,7 +186,6 @@ export const getServiceStats = (params = {}) => {
     params
   })
 }
-
 /**
  * 获取门诊费用统计
  * @param {Object} queryParams 查询参数
@@ -195,7 +194,7 @@ export const getServiceStats = (params = {}) => {
  * @param {Object} queryParams.pageInfo 分页信息
  * @returns {Promise}
  */
-export const getOutpatientCostStats = (queryParams = {}) => {
+export const fetchOutpatientCostStatistics = (queryParams = {}) => {
   return request({
     url: '/statistics/cost/outpatient/query',
     method: 'POST',
@@ -211,7 +210,7 @@ export const getOutpatientCostStats = (queryParams = {}) => {
  * @param {Object} queryParams.pageInfo 分页信息
  * @returns {Promise}
  */
-export const getInpatientCostStats = (queryParams = {}) => {
+export const fetchInpatientCostStatistics = (queryParams = {}) => {
   return request({
     url: '/statistics/cost/inpatient/query',
     method: 'POST',
@@ -226,7 +225,7 @@ export const getInpatientCostStats = (queryParams = {}) => {
  * @param {string} params.costType 费用类型
  * @returns {Promise}
  */
-export const getCostStructureComparison = (params = {}) => {
+export const fetchCostStructureComparison = (params = {}) => {
   return request({
     url: '/statistics/cost/structure-comparison',
     method: 'GET',
@@ -249,6 +248,7 @@ export const getCostStats = (params = {}) => {
     params
   })
 }
+
 
 /**
  * 获取区域分布数据

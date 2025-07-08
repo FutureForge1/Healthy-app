@@ -381,23 +381,62 @@ const loadInstitutionCategoryData = async () => {
 const loadDoctorWorkloadData = async () => {
   try {
     const params = {
-      filters: {},
+      columns: [], // 可选，查出几个字段的区间统计
+      step: 2, // 自定义每个区间长度
+      filters: {
+        year: {
+          gte: parseInt(selectedYear.value),
+          lte: parseInt(selectedYear.value)
+        }
+      },
       sort: [{ field: 'visitsPerDoctor', order: 'asc' }],
       pageInfo: { index: 0, size: 20 }
     }
 
     const response = await getHospitalStatistics(params)
-    console.log('医生工作量数据:', response)
+    console.log(`${selectedYear.value}年医生工作量数据:`, response)
+    console.log('API请求参数:', params)
 
-    const data = response.data?.rows || []
+    // 检查响应状态
+    if (response.status === 0 || response.code === 200) {
+      const data = response.data?.rows || []
 
-    if (data.length > 0) {
-      hospitalLevels.value = data.map(item => item.hospitalLevel || '')
-      doctorWorkloadData.value = data.map(item => item.visitsPerDoctor || 0)
-      bedEfficiencyData.value = data.map(item => item.bedDaysPerDoctor || 0)
+      if (data.length > 0) {
+        // 过滤选中年份的数据
+        const yearFilteredData = data.filter(item =>
+          !selectedYear.value || item.year === parseInt(selectedYear.value)
+        )
+
+        const targetData = yearFilteredData.length > 0 ? yearFilteredData : data
+
+        // 直接使用API返回的数据结构
+        hospitalLevels.value = targetData.map(item => item.hospitalLevel || '')
+        doctorWorkloadData.value = targetData.map(item => item.visitsPerDoctor || 0)
+        bedEfficiencyData.value = targetData.map(item => item.bedDaysPerDoctor || 0)
+
+        console.log(`${selectedYear.value}年医生工作量图表数据:`, {
+          levels: hospitalLevels.value,
+          workload: doctorWorkloadData.value,
+          bedEfficiency: bedEfficiencyData.value,
+          rawData: targetData
+        })
+        console.log('详细的levels数据:', hospitalLevels.value)
+        console.log('详细的workload数据:', doctorWorkloadData.value)
+        console.log('详细的bedEfficiency数据:', bedEfficiencyData.value)
+      } else {
+        // 没有数据时清空图表
+        hospitalLevels.value = []
+        doctorWorkloadData.value = []
+        bedEfficiencyData.value = []
+        console.log(`${selectedYear.value}年暂无医生工作量数据`)
+      }
+    } else {
+      console.error('医生工作量API返回错误:', response)
+      ElMessage.error(`医生工作量数据API错误: ${response.message || '未知错误'}`)
     }
   } catch (error) {
     console.error('加载医生工作量数据失败:', error)
+    ElMessage.error('医生工作量数据加载失败')
   }
 }
 
@@ -410,7 +449,8 @@ const handleYearChange = async () => {
     console.log(`切换到${selectedYear.value}年数据`)
     await Promise.all([
       loadOverviewData(),
-      loadInstitutionCategoryData()
+      loadInstitutionCategoryData(),
+      loadDoctorWorkloadData() // 添加医生工作量和床位使用率数据更新
     ])
     ElMessage.success(`已切换到${selectedYear.value}年数据`)
   } catch (error) {

@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       host: 'localhost',
       proxy: {
         '/api': {
-          target: env.VITE_API_BASE_URL || 'https://localhost:8080',
+          target: env.VITE_API_BASE_URL || 'http://localhost:8080',
           changeOrigin: true,
           secure: false, // 开发环境允许自签名证书
           rejectUnauthorized: false, // 忽略证书验证
