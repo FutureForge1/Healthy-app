@@ -117,7 +117,8 @@
               </div>
             </div>
             <div class="module-actions">
-              <el-button type="primary" @click="$router.push('/app/audit/operation-logs')">
+              <el-button type="primary" @click="showLogDialog = true">
+                <el-icon><Document /></el-icon>
                 查看日志
               </el-button>
               <el-button @click="quickAnalysis">快速分析</el-button>
@@ -303,6 +304,7 @@
       <div style="text-align:center;color:#666;margin-top:16px;">正在跳转到系统监控...</div>
     </div>
   </div>
+  <LogDialog v-model:visible="showLogDialog" />
 </template>
 
 <script setup>
@@ -319,6 +321,8 @@ import {
   FolderOpened
 } from '@element-plus/icons-vue'
 import { visualizationApi } from '@/api/visualization'
+import LogDialog from '@/components/LogDialog.vue'
+const showLogDialog = ref(false)
 import { auditApi } from '@/api/audit'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 const jvmSummary = ref({})
@@ -741,6 +745,7 @@ onUnmounted(() => {
   padding: 24px;
   background: #f5f7fa;
   min-height: 100vh;
+
 }
 
 /* 页面头部 */

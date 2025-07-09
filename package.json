@@ -22,6 +22,7 @@
     "element-plus": "^2.10.2",
     "gsap": "^3.13.0",
     "mapbox-gl": "^3.13.0",
+    "papaparse": "^5.5.3",
     "pinia": "^3.0.3",
     "three": "^0.177.0",
     "topojson-client": "^3.1.0",
