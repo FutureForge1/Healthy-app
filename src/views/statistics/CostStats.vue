@@ -473,6 +473,7 @@
 import { fetchOutpatientCostStatistics, fetchInpatientCostStatistics, fetchCostStructureComparison } from '@/api/cost'
 import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import {
   Download, DataAnalysis, Refresh, Search, Money, User, House,
   TrendCharts, ArrowUp, ArrowDown, View
@@ -484,6 +485,10 @@ import {
   calculateAverageFee,
   calculateAverageRatio
 } from '@/utils/cost-utils'
+
+// 路由
+const router = useRouter()
+
 // 所有响应式变量和数据定义在这里
 const activeTab = ref('outpatient')
 const structureChartType = ref('pie')
@@ -920,13 +925,35 @@ const getMedicineRatioTagType = (ratio) => {
   return 'danger'
 }
 
-// 导出相关方法
-const exportData = () => {
-  ElMessage.success('导出功能开发中')
+// 导出相关方法 - 创建导出任务并跳转到导入导出页面
+const exportData = async () => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'cost',
+    exportFormat: 'excel',
+    filters: {
+      startYear: parseInt(selectedYear.value) - 2,
+      endYear: parseInt(selectedYear.value)
+    },
+    fields: ['year', 'hospitalName', 'outpatientCost', 'inpatientCost', 'totalCost', 'medicineRatio'],
+    taskName: `医疗费用统计数据_${selectedYear.value}`
+  }, router)
 }
 
-const exportTableData = (type) => {
-  ElMessage.success(`导出${type}数据功能开发中`)
+const exportTableData = async (type) => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'cost',
+    exportFormat: 'excel',
+    filters: {
+      year: parseInt(selectedYear.value),
+      costType: type
+    },
+    fields: type === '门诊'
+      ? ['hospitalName', 'outpatientVisits', 'outpatientCost', 'averageCostPerVisit']
+      : ['hospitalName', 'inpatientAdmissions', 'inpatientCost', 'averageCostPerAdmission', 'averageStay'],
+    taskName: `${type}费用详细数据_${selectedYear.value}`
+  }, router)
 }
 
 const showCostAnalysis = () => {

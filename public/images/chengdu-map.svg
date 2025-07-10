@@ -1,0 +1,171 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 成都市地图简化版 -->
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 外围区县边界 -->
+  <g opacity="0.3" stroke="#ffffff" stroke-width="1" fill="none">
+    <!-- 都江堰市 -->
+    <path d="M200 300Q300 250 400 300L450 350Q400 400 300 380Q200 360 200 300Z" stroke-dasharray="5,5"/>
+    
+    <!-- 彭州市 -->
+    <path d="M400 200Q500 180 600 220L650 280Q600 320 500 300Q400 280 400 200Z" stroke-dasharray="5,5"/>
+    
+    <!-- 崇州市 -->
+    <path d="M150 500Q250 480 350 520L400 580Q350 620 250 600Q150 580 150 500Z" stroke-dasharray="5,5"/>
+    
+    <!-- 邛崃市 -->
+    <path d="M200 700Q300 680 400 720L450 780Q400 820 300 800Q200 780 200 700Z" stroke-dasharray="5,5"/>
+    
+    <!-- 大邑县 -->
+    <path d="M350 800Q450 780 550 820L600 880Q550 920 450 900Q350 880 350 800Z" stroke-dasharray="5,5"/>
+    
+    <!-- 蒲江县 -->
+    <path d="M500 900Q600 880 700 920L750 980Q700 1020 600 1000Q500 980 500 900Z" stroke-dasharray="5,5"/>
+    
+    <!-- 新津区 -->
+    <path d="M600 800Q700 780 800 820L850 880Q800 920 700 900Q600 880 600 800Z" stroke-dasharray="5,5"/>
+    
+    <!-- 双流区 -->
+    <path d="M700 650Q800 630 900 670L950 730Q900 770 800 750Q700 730 700 650Z" stroke-dasharray="5,5"/>
+    
+    <!-- 温江区 -->
+    <path d="M450 550Q550 530 650 570L700 630Q650 670 550 650Q450 630 450 550Z" stroke-dasharray="5,5"/>
+    
+    <!-- 郫都区 -->
+    <path d="M500 400Q600 380 700 420L750 480Q700 520 600 500Q500 480 500 400Z" stroke-dasharray="5,5"/>
+    
+    <!-- 新都区 -->
+    <path d="M650 300Q750 280 850 320L900 380Q850 420 750 400Q650 380 650 300Z" stroke-dasharray="5,5"/>
+    
+    <!-- 青白江区 -->
+    <path d="M800 250Q900 230 1000 270L1050 330Q1000 370 900 350Q800 330 800 250Z" stroke-dasharray="5,5"/>
+    
+    <!-- 金堂县 -->
+    <path d="M900 400Q1000 380 1100 420L1150 480Q1100 520 1000 500Q900 480 900 400Z" stroke-dasharray="5,5"/>
+    
+    <!-- 龙泉驿区 -->
+    <path d="M850 550Q950 530 1050 570L1100 630Q1050 670 950 650Q850 630 850 550Z" stroke-dasharray="5,5"/>
+    
+    <!-- 简阳市 -->
+    <path d="M950 700Q1050 680 1150 720L1200 780Q1150 820 1050 800Q950 780 950 700Z" stroke-dasharray="5,5"/>
+  </g>
+  
+  <!-- 主城区 -->
+  <g opacity="0.5" stroke="#ffffff" stroke-width="2" fill="none">
+    <!-- 锦江区 -->
+    <circle cx="600" cy="600" r="40" />
+    
+    <!-- 青羊区 -->
+    <circle cx="550" cy="580" r="35" />
+    
+    <!-- 金牛区 -->
+    <circle cx="580" cy="550" r="35" />
+    
+    <!-- 武侯区 -->
+    <circle cx="580" cy="630" r="35" />
+    
+    <!-- 成华区 -->
+    <circle cx="630" cy="570" r="35" />
+    
+    <!-- 高新区 -->
+    <path d="M620 620Q680 600 720 640Q700 680 640 700Q580 680 580 640Q600 600 620 620Z" />
+    
+    <!-- 天府新区 -->
+    <path d="M650 700Q750 680 800 720Q780 780 720 800Q660 780 620 740Q640 700 650 700Z" />
+  </g>
+  
+  <!-- 主要道路网络 -->
+  <g opacity="0.4" stroke="#ffffff" stroke-width="1.5">
+    <!-- 环线 -->
+    <circle cx="600" cy="600" r="80" fill="none" stroke-dasharray="10,5"/>
+    <circle cx="600" cy="600" r="120" fill="none" stroke-dasharray="15,10"/>
+    <circle cx="600" cy="600" r="160" fill="none" stroke-dasharray="20,15"/>
+    
+    <!-- 主要放射线 -->
+    <line x1="600" y1="400" x2="600" y2="800" />
+    <line x1="400" y1="600" x2="800" y2="600" />
+    <line x1="480" y1="480" x2="720" y2="720" />
+    <line x1="720" y1="480" x2="480" y2="720" />
+    
+    <!-- 高速公路 -->
+    <path d="M300 400Q600 350 900 400" stroke-width="2" stroke-dasharray="20,10"/>
+    <path d="M400 300Q600 450 800 300" stroke-width="2" stroke-dasharray="20,10"/>
+    <path d="M300 800Q600 750 900 800" stroke-width="2" stroke-dasharray="20,10"/>
+  </g>
+  
+  <!-- 重要地标 -->
+  <g opacity="0.6" fill="#ffffff">
+    <!-- 天府广场 -->
+    <circle cx="600" cy="600" r="6" filter="url(#glow)"/>
+    <text x="610" y="605" font-family="Arial" font-size="12" fill="#ffffff" opacity="0.8">天府广场</text>
+    
+    <!-- 春熙路 -->
+    <circle cx="620" cy="590" r="4" />
+    <text x="625" y="585" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">春熙路</text>
+    
+    <!-- 宽窄巷子 -->
+    <circle cx="580" cy="590" r="4" />
+    <text x="585" y="585" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">宽窄巷子</text>
+    
+    <!-- 锦里 -->
+    <circle cx="590" cy="620" r="4" />
+    <text x="595" y="615" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">锦里</text>
+    
+    <!-- 杜甫草堂 -->
+    <circle cx="570" cy="610" r="4" />
+    <text x="575" y="605" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">杜甫草堂</text>
+    
+    <!-- 武侯祠 -->
+    <circle cx="590" cy="630" r="4" />
+    <text x="595" y="625" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">武侯祠</text>
+    
+    <!-- 金沙遗址 -->
+    <circle cx="550" cy="570" r="4" />
+    <text x="555" y="565" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">金沙遗址</text>
+    
+    <!-- 大熊猫基地 -->
+    <circle cx="650" cy="520" r="4" />
+    <text x="655" y="515" font-family="Arial" font-size="10" fill="#ffffff" opacity="0.7">熊猫基地</text>
+  </g>
+  
+  <!-- 河流水系 -->
+  <g opacity="0.3" stroke="#ffffff" stroke-width="2" fill="none">
+    <!-- 锦江 -->
+    <path d="M400 500Q600 550 800 600Q900 650 1000 700" stroke-linecap="round"/>
+    
+    <!-- 沙河 -->
+    <path d="M500 400Q650 500 750 600Q850 700 950 800" stroke-linecap="round"/>
+    
+    <!-- 府河 -->
+    <path d="M300 600Q500 580 700 600Q800 620 900 640" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 地铁线路 -->
+  <g opacity="0.4" stroke="#ffffff" stroke-width="3" fill="none">
+    <!-- 1号线 -->
+    <path d="M450 600L750 600" stroke="#ff6b6b" stroke-dasharray="5,5"/>
+    
+    <!-- 2号线 -->
+    <path d="M600 450L600 750" stroke="#4ecdc4" stroke-dasharray="5,5"/>
+    
+    <!-- 3号线 -->
+    <path d="M500 500L700 700" stroke="#45b7d1" stroke-dasharray="5,5"/>
+    
+    <!-- 4号线 -->
+    <path d="M500 700L700 500" stroke="#f9ca24" stroke-dasharray="5,5"/>
+  </g>
+  
+  <!-- 区域标识 -->
+  <g opacity="0.5" fill="#ffffff" font-family="Arial" font-size="14" text-anchor="middle">
+    <text x="600" y="500" opacity="0.8">成都市</text>
+    <text x="600" y="520" font-size="12" opacity="0.6">Chengdu</text>
+  </g>
+</svg>

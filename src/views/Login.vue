@@ -469,9 +469,14 @@ const handleLogin = async () => {
   try {
     loading.value = true
 
+    console.log('开始登录，用户名:', loginForm.username)
     const result = await userStore.loginAction(loginForm)
+    console.log('登录结果:', result)
 
     if (result.success) {
+      console.log('登录成功，用户信息:', userStore.userInfo)
+      console.log('用户角色:', userStore.userInfo.role)
+
       // 登录成功，显示加载过渡动画
       loading.value = false
       showLoadingTransition.value = true
@@ -488,6 +493,8 @@ const handleTransitionComplete = () => {
   // 跳转到仪表板
   router.push('/app/dashboard')
 }
+
+
 
 // 跳转到注册页面
 const goToRegister = () => {
@@ -904,6 +911,8 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
 }
+
+
 
 .social-btn {
   flex: 1;

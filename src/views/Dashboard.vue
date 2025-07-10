@@ -1,5 +1,14 @@
 <template>
   <div class="dashboard">
+    <!-- 用户信息和欢迎区域 -->
+    <div class="welcome-section">
+      <div class="welcome-content">
+        <h1>欢迎回来，{{ userStore.userInfo.realName || userStore.userInfo.username || '用户' }}！</h1>
+        <p>您当前的角色是：<strong>{{ getRoleDisplayName(userStore.userInfo.role) }}</strong></p>
+      </div>
+      <UserInfo />
+    </div>
+
     <!-- 实时健康指数大屏 -->
     <div class="health-index-section">
       <div class="health-index-header">
@@ -212,7 +221,9 @@ import { ElMessage, ElLoading } from 'element-plus'
 import dashboardAPI from '@/api/dashboard'
 import ChengduMapboxWalking from '../components/ChengduMapboxWalking.vue'
 import GGBondCard from '../components/GGBondCard.vue'
+import UserInfo from '../components/UserInfo.vue'
 import { populationApi } from '../api/population.js'
+import { ROLE_DISPLAY_NAMES } from '@/utils/permission'
 import { hospitalApi, getHospitalLevelStats } from '../api/hospital.js'
 import {
   User,
@@ -240,6 +251,11 @@ import {
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 获取角色显示名称
+const getRoleDisplayName = (role) => {
+  return ROLE_DISPLAY_NAMES[role] || role || '未知角色'
+}
 
 // 图表引用
 const populationChart = ref(null)
@@ -1163,6 +1179,33 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #f5f7fa 0%, #e8f4fd 100%);
   padding: 24px;
   overflow-x: hidden;
+}
+
+/* 欢迎区域 */
+.welcome-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-content h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome-content p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
 }
 
 /* 实时健康指数大屏 */

@@ -412,7 +412,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { Download, Refresh, Search, RefreshLeft } from '@element-plus/icons-vue'
 import OverviewCard from '@/components/OverviewCard.vue'
 import PieChart from '@/components/charts/PieChart.vue'
@@ -420,6 +421,9 @@ import LineChart from '@/components/charts/LineChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import ChengduMap from '@/components/ChengduMap.vue'
 import populationApi from '@/api/population'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -1034,9 +1038,93 @@ const resetFilters = () => {
   loadData()
 }
 
-// 导出数据
-const exportData = () => {
-  ElMessage.info('导出功能开发中')
+// 导出数据 - 创建真实的导出任务
+const exportData = async () => {
+  try {
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: '正在创建导出任务...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    })
+
+    try {
+      // 准备导出参数，使用当前页面的筛选条件
+      const exportParams = {
+        dataType: 'population',
+        exportFormat: 'excel',
+        taskName: `人口统计数据_${selectedYear.value}`,
+        filters: {
+          year: parseInt(selectedYear.value),
+          startYear: parseInt(selectedYear.value) - 3, // 导出近4年数据
+          endYear: parseInt(selectedYear.value)
+        },
+        fields: [
+          'year',
+          'totalPopulation',
+          'urbanPopulation',
+          'ruralPopulation',
+          'malePopulation',
+          'femalePopulation',
+          'urbanizationRate',
+          'genderRatio'
+        ]
+      }
+
+      // 验证参数
+      if (!exportParams.taskName || !exportParams.dataType) {
+        throw new Error('导出参数不完整')
+      }
+
+      if (exportParams.filters.startYear > exportParams.filters.endYear) {
+        throw new Error('开始年份不能大于结束年份')
+      }
+
+      console.log('创建人口数据导出任务:', exportParams)
+
+      // 调用导出API创建任务
+      const { exportData: createExportTask } = await import('@/api/data')
+
+      console.log('🚀 调用导出API，参数:', exportParams)
+      const response = await createExportTask(exportParams)
+      console.log('📥 导出API响应:', response)
+
+      let exportId = null
+      if (response && response.status === 0 && response.data?.exportId) {
+        exportId = response.data.exportId
+        console.log('✅ 导出任务创建成功:', exportId)
+        ElMessage.success('导出任务创建成功，正在跳转到下载页面')
+      } else {
+        // API失败时显示详细错误信息
+        const errorMsg = response?.message || '未知错误'
+        console.error('❌ 导出API调用失败:', {
+          status: response?.status,
+          message: response?.message,
+          data: response?.data
+        })
+
+        throw new Error(`导出API调用失败: ${errorMsg}`)
+      }
+
+      // 跳转到导入导出页面
+      router.push({
+        path: '/app/data/import-export',
+        query: {
+          newTask: 'true',
+          taskName: `人口统计数据_${selectedYear.value}`,
+          dataType: 'population',
+          exportFormat: 'excel',
+          exportId: exportId,
+          timestamp: Date.now()
+        }
+      })
+
+    } finally {
+      loadingInstance.close()
+    }
+  } catch (error) {
+    console.error('创建导出任务失败:', error)
+    ElMessage.error('创建导出任务失败，请稍后重试')
+  }
 }
 
 // 刷新数据

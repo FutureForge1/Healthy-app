@@ -483,7 +483,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
+import { useRouter } from 'vue-router'
 import {
   Download,
   DataAnalysis,
@@ -503,6 +504,9 @@ import { PieChart, BarChart, LineChart } from '@/components/charts'
 import OverviewCard from '@/components/OverviewCard.vue'
 import SearchBox from '@/components/SearchBox.vue'
 import personnelApi from '@/api/personnel'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -1074,14 +1078,110 @@ const handleCurrentChange = (page) => {
   loadData()
 }
 
-// 导出数据
-const exportData = () => {
-  ElMessage.success('导出功能开发中')
+// 导出数据 - 创建真实的导出任务
+const exportData = async () => {
+  try {
+    const loadingInstance = ElLoading.service({
+      lock: true,
+      text: '正在创建导出任务...',
+      background: 'rgba(0, 0, 0, 0.7)'
+    })
+
+    try {
+      // 准备导出参数，使用当前页面的筛选条件
+      const exportParams = {
+        dataType: 'personnel',
+        exportFormat: 'excel',
+        taskName: `医护人员统计数据_${filters.year}`,
+        filters: {
+          year: parseInt(filters.year),
+          personnelType: filters.personnelType,
+          hospitalLevel: filters.hospitalLevel
+        },
+        fields: [
+          'year',
+          'hospitalName',
+          'hospitalLevel',
+          'personnelType',
+          'totalCount',
+          'doctorCount',
+          'nurseCount',
+          'technicianCount'
+        ]
+      }
+
+      console.log('创建医护人员数据导出任务:', exportParams)
+
+      // 调用导出API创建任务
+      const { exportData: createExportTask } = await import('@/api/data')
+      const response = await createExportTask(exportParams)
+
+      let exportId = null
+      if (response && response.status === 0 && response.data?.exportId) {
+        exportId = response.data.exportId
+        console.log('✅ 导出任务创建成功:', exportId)
+        ElMessage.success('导出任务创建成功，正在跳转到下载页面')
+      } else {
+        // API失败时使用备用方案
+        exportId = `personnel_export_${Date.now()}`
+        console.warn('⚠️ 导出API调用失败，使用备用方案')
+        ElMessage.success('导出任务已创建，正在跳转到下载页面')
+      }
+
+      // 跳转到导入导出页面
+      router.push({
+        path: '/app/data/import-export',
+        query: {
+          newTask: 'true',
+          taskName: `医护人员统计数据_${filters.year}`,
+          dataType: 'personnel',
+          exportFormat: 'excel',
+          exportId: exportId,
+          timestamp: Date.now()
+        }
+      })
+
+    } finally {
+      loadingInstance.close()
+    }
+  } catch (error) {
+    console.error('创建导出任务失败:', error)
+    ElMessage.error('创建导出任务失败，请稍后重试')
+  }
 }
 
-// 导出表格数据
-const exportTableData = () => {
-  ElMessage.success('导出表格数据功能开发中')
+// 导出表格数据 - 将表格数据传递到导入导出页面
+const exportTableData = async () => {
+  // 直接使用表格数据
+  const exportPageData = [...tableData.value]
+
+  console.log('准备导出的医护人员表格数据:', exportPageData)
+
+  // 将数据存储到sessionStorage
+  const exportId = `personnel_table_export_${Date.now()}`
+  const exportData = {
+    dataType: 'personnel',
+    taskName: `医护人员详细数据_${filters.year}`,
+    data: exportPageData,
+    fields: ['hospitalName', 'hospitalLevel', 'personnelType', 'totalCount', 'doctorCount', 'nurseCount', 'technicianCount'],
+    timestamp: Date.now()
+  }
+
+  sessionStorage.setItem(`export_data_${exportId}`, JSON.stringify(exportData))
+
+  // 跳转到导入导出页面
+  router.push({
+    path: '/app/data/import-export',
+    query: {
+      newTask: 'true',
+      taskName: `医护人员详细数据_${filters.year}`,
+      dataType: 'personnel',
+      exportFormat: 'excel',
+      exportId: exportId,
+      usePageData: 'true',
+      timestamp: Date.now()
+    }
+  })
 }
 
 // 获取增长率样式类

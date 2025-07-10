@@ -80,22 +80,6 @@ export function isAdmin() {
 }
 
 /**
- * 研究员权限检查
- * @returns {boolean} 是否是研究员
- */
-export function isResearcher() {
-  return hasRole('RESEARCHER')
-}
-
-/**
- * 审计员权限检查
- * @returns {boolean} 是否是审计员
- */
-export function isAuditor() {
-  return hasRole('AUDITOR')
-}
-
-/**
  * 访客权限检查
  * @returns {boolean} 是否是访客
  */
@@ -116,18 +100,32 @@ export function hasAdvancedPermission() {
  * @returns {boolean} 是否有数据访问权限
  */
 export function hasDataAccess() {
-  return hasRole(['ADMIN', 'ANALYST', 'RESEARCHER'])
+  return hasRole(['ADMIN', 'ANALYST'])
+}
+
+/**
+ * 检查是否可以查看日志管理
+ * @returns {boolean} 是否可以查看日志管理
+ */
+export function canViewLogs() {
+  return hasRole('ADMIN')
+}
+
+/**
+ * 检查是否可以查看预测分析
+ * @returns {boolean} 是否可以查看预测分析
+ */
+export function canViewPrediction() {
+  return hasRole(['ADMIN', 'ANALYST'])
 }
 
 /**
  * 权限级别枚举
  */
 export const PERMISSION_LEVELS = {
-  VISITOR: 1,      // 访客 - 只能查看公开内容
-  AUDITOR: 2,      // 审计员 - 可以查看审计相关数据
-  RESEARCHER: 3,   // 研究员 - 可以查看统计数据
-  ANALYST: 4,      // 数据分析师 - 可以进行高级分析和预测
-  ADMIN: 5         // 管理员 - 拥有所有权限
+  VISITOR: 1,      // 访客 - 可以查看统计分析，不能查看日志管理和预测分析
+  ANALYST: 2,      // 数据分析师 - 可以查看所有功能除了日志管理
+  ADMIN: 3         // 管理员 - 拥有所有权限
 }
 
 /**
@@ -156,10 +154,16 @@ export function hasPermissionLevel(requiredLevel) {
 export const ROLE_DISPLAY_NAMES = {
   ADMIN: '系统管理员',
   ANALYST: '数据分析师',
-  RESEARCHER: '研究员',
-  AUDITOR: '审计员',
-  VISITOR: '访客'
+  VISITOR: '访客用户'
 }
+
+/**
+ * 可注册的角色列表（管理员不能注册）
+ */
+export const REGISTERABLE_ROLES = [
+  { value: 'ANALYST', label: '数据分析师', description: '可以查看所有统计分析和预测功能' },
+  { value: 'VISITOR', label: '访客用户', description: '可以查看基础统计分析功能' }
+]
 
 /**
  * 获取角色显示名称
@@ -178,11 +182,11 @@ export const Permission = {
   hasRoutePermission,
   isAnalyst,
   isAdmin,
-  isResearcher,
-  isAuditor,
   isVisitor,
   hasAdvancedPermission,
   hasDataAccess,
+  canViewLogs,
+  canViewPrediction,
   getUserPermissionLevel,
   hasPermissionLevel,
   getRoleDisplayName

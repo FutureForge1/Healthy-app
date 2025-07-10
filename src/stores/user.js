@@ -36,13 +36,13 @@ export const useUserStore = defineStore('user', () => {
 
       // 尝试从不同的字段获取角色信息
       if (response.roles) {
-        rolesValue = response.roles
+        rolesValue = Array.isArray(response.roles) ? response.roles : [response.roles]
       } else if (response.data && response.data.roles) {
-        rolesValue = response.data.roles
+        rolesValue = Array.isArray(response.data.roles) ? response.data.roles : [response.data.roles]
       } else if (response.authorities) {
-        rolesValue = response.authorities
+        rolesValue = Array.isArray(response.authorities) ? response.authorities : [response.authorities]
       } else if (response.data && response.data.authorities) {
-        rolesValue = response.data.authorities
+        rolesValue = Array.isArray(response.data.authorities) ? response.data.authorities : [response.data.authorities]
       }
 
       // 尝试获取用户信息
@@ -54,6 +54,38 @@ export const useUserStore = defineStore('user', () => {
         userInfoValue = response.userInfo
       } else if (response.data && response.data.userInfo) {
         userInfoValue = response.data.userInfo
+      }
+
+      // 处理角色信息
+      let userRole = null
+
+      // 首先尝试从用户信息中获取角色
+      if (userInfoValue && userInfoValue.role) {
+        userRole = userInfoValue.role
+      } else if (userInfoValue && userInfoValue.roles && userInfoValue.roles.length > 0) {
+        userRole = userInfoValue.roles[0]
+      }
+
+      // 如果用户信息中没有角色，从角色数组中获取
+      if (!userRole && rolesValue.length > 0) {
+        // 处理角色数组，提取角色名称
+        userRole = rolesValue[0]
+        if (typeof userRole === 'object' && userRole.roleCode) {
+          userRole = userRole.roleCode
+        } else if (typeof userRole === 'object' && userRole.roleName) {
+          // 根据角色名称映射到角色代码
+          const roleNameMap = {
+            '系统管理员': 'ADMIN',
+            '数据分析师': 'ANALYST',
+            '访客用户': 'VISITOR'
+          }
+          userRole = roleNameMap[userRole.roleName] || 'VISITOR'
+        }
+      }
+
+      // 确保用户信息包含角色信息
+      if (userInfoValue) {
+        userInfoValue.role = userRole || 'VISITOR'
       }
 
       // 检查后端是否返回了错误信息
@@ -79,11 +111,16 @@ export const useUserStore = defineStore('user', () => {
           username: userInfoValue.username || loginData.username,
           email: userInfoValue.email || '',
           realName: userInfoValue.realName || '',
+          role: userInfoValue.role || (rolesValue.length > 0 ? rolesValue[0] : 'VISITOR'),
           roles: rolesValue,
           ...userInfoValue
         }
         userInfo.value = finalUserInfo
         localStorage.setItem('userInfo', JSON.stringify(finalUserInfo))
+
+        console.log('登录成功，保存的用户信息:', finalUserInfo)
+        console.log('保存的角色信息:', rolesValue)
+        console.log('用户角色:', finalUserInfo.role)
 
         ElMessage.success('登录成功')
         return { success: true, data: response }
@@ -155,11 +192,13 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     userInfo.value = {}
     roles.value = []
-    
+
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
     localStorage.removeItem('roles')
   }
+
+
 
   return {
     // 状态

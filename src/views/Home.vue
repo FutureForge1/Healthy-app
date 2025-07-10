@@ -1,5 +1,5 @@
 <template>
-  <div class="home-container">
+  <div class="home-container" ref="homeContainer">
     <!-- Navigation -->
     <Navbar />
 
@@ -7,20 +7,31 @@
     <section class="hero-section" ref="heroRef">
       <div class="hero-background">
         <div class="floating-particles">
-          <div v-for="i in 20" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+          <div v-for="i in 15" :key="i" class="particle" :style="getParticleStyle(i)"></div>
+        </div>
+        <div class="chengdu-landmarks">
+          <div class="landmark landmark-1">🏮</div>
+          <div class="landmark landmark-2">🎋</div>
+          <div class="landmark landmark-3">🌸</div>
+          <div class="landmark landmark-4">🐼</div>
         </div>
       </div>
       
       <div class="hero-content">
         <div class="hero-text" :class="{ 'animate-in': heroVisible }">
           <h1 class="hero-title">
-            <span class="title-line">健康大数据</span>
-            <span class="title-line">统计分析平台</span>
+            <span class="title-line">天府健康云</span>
+            <span class="title-line">成都大数据分析平台</span>
           </h1>
           <p class="hero-subtitle">
-            基于大数据技术，整合医疗、产业、气象数据，
-            <br>构建智能化的健康数据分析决策系统
+            立足天府之国，基于大数据技术整合蓉城医疗、产业、气象数据，
+            <br>构建智慧成都健康数据分析决策系统
           </p>
+          <div class="chengdu-elements">
+            <div class="panda-icon">🐼</div>
+            <div class="location-tag">📍 成都市</div>
+            <div class="culture-tag">🏮 天府文化</div>
+          </div>
           <div class="hero-buttons">
             <button class="cta-button primary" @click="goToLogin">
               开始使用
@@ -128,113 +139,78 @@
 
     <!-- Demo Section -->
     <section class="demo-section" ref="demoRef" id="demo">
-      <div class="container">
-        <div class="section-header" :class="{ 'animate-in': demoVisible }">
-          <h2>产品演示</h2>
-          <p>体验强大的健康大数据分析功能</p>
+      <!-- Background Elements -->
+      <div class="demo-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+      </div>
+
+      <div class="demo-container">
+        <div class="demo-sticky-content">
+          <div class="demo-left">
+            <!-- Section Header -->
+            <div class="demo-header">
+              <div class="demo-badge">
+                <span class="badge-icon">✨</span>
+                产品演示
+              </div>
+              <h2 class="demo-title">体验强大的健康大数据分析功能</h2>
+              <p class="demo-subtitle">探索我们的创新解决方案，让数据驱动您的决策</p>
+            </div>
+
+            <!-- Features Description -->
+            <div class="demo-description">
+              <p class="description-text">
+                我们的健康大数据平台集成了多种先进的分析工具和可视化技术，为用户提供全面的数据洞察。
+                通过地理信息系统展示成都市各区县的人口分布情况，帮助决策者了解人口密度和区域差异。
+                平台支持多年度医院等级分布趋势分析，为医疗资源配置和政策制定提供数据支撑。
+              </p>
+
+              <p class="description-text">
+                系统提供完善的用户信息管理功能，支持多角色权限控制和个性化设置，确保数据安全和访问控制。
+                集成ARIMA、SARIMA、NeuralProphet、TBATS等多种机器学习模型，
+                为用户提供专业的数据预测和分析服务，支持灵活的算法选择和参数调优。
+              </p>
+
+              <p class="description-text">
+                平台采用现代化的界面设计和交互体验，支持实时数据更新和多维度数据展示，
+                让复杂的健康数据变得直观易懂，助力科学决策和精准管理。
+              </p>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="demo-actions">
+              <button class="demo-button primary" @click="goToLogin">
+                <span>立即体验</span>
+                <div class="button-glow"></div>
+                <svg class="button-icon" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M5,13L9,17L7.6,18.42L1.18,12L7.6,5.58L9,7L5,11H21V13H5M21,6V8H11V6H21M21,16V18H11V16H21Z"/>
+                </svg>
+              </button>
+              <button class="demo-button secondary" @click="goToRegister">
+                <span>免费注册</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="demo-tabs" :class="{ 'animate-in': demoVisible }">
-          <div class="tab-buttons">
-            <button
-              v-for="(tab, index) in demoTabs"
-              :key="index"
-              class="tab-button"
-              :class="{ 'active': activeTab === index }"
-              @click="switchTab(index)"
-            >
-              <div class="tab-icon">{{ tab.icon }}</div>
-              <span>{{ tab.title }}</span>
-            </button>
-          </div>
-
-          <div class="tab-content">
-            <div v-for="(tab, index) in demoTabs" :key="index" class="tab-panel" :class="{ 'active': activeTab === index }">
-              <div class="demo-content">
-                <div class="demo-text">
-                  <h3>{{ tab.title }}</h3>
-                  <p>{{ tab.description }}</p>
-                  <ul class="demo-features">
-                    <li v-for="feature in tab.features" :key="feature">{{ feature }}</li>
-                  </ul>
-                  <button class="demo-button" @click="goToLogin">
-                    体验功能
-                    <svg class="button-icon" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M5,13L9,17L7.6,18.42L1.18,12L7.6,5.58L9,7L5,11H21V13H5M21,6V8H11V6H21M21,16V18H11V16H21Z"/>
-                    </svg>
-                  </button>
-                </div>
-
-                <div class="demo-visual">
-                  <div class="demo-dashboard">
-                    <div class="dashboard-header">
-                      <div class="dashboard-title">{{ tab.title }}</div>
-                      <div class="dashboard-status">
-                        <span class="status-dot active"></span>
-                        <span>实时更新</span>
-                      </div>
-                    </div>
-
-                    <div class="dashboard-content">
-                      <!-- 数据分析图表 -->
-                      <div v-if="activeTab === 0" class="chart-container">
-                        <div class="chart-header">
-                          <h4>患者流量趋势</h4>
-                          <div class="chart-controls">
-                            <span class="control-item active">日</span>
-                            <span class="control-item">周</span>
-                            <span class="control-item">月</span>
-                          </div>
-                        </div>
-                        <div class="line-chart-wrapper">
-                          <svg viewBox="0 0 400 200" class="animated-chart">
-                            <defs>
-                              <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3"/>
-                                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0"/>
-                              </linearGradient>
-                            </defs>
-                            <path
-                              d="M 20 160 L 60 140 L 100 120 L 140 100 L 180 110 L 220 90 L 260 80 L 300 70 L 340 60 L 380 50"
-                              stroke="#6366f1"
-                              stroke-width="3"
-                              fill="none"
-                              class="chart-line"
-                            />
-                            <path
-                              d="M 20 160 L 60 140 L 100 120 L 140 100 L 180 110 L 220 90 L 260 80 L 300 70 L 340 60 L 380 50 L 380 180 L 20 180 Z"
-                              fill="url(#chartGradient)"
-                              class="chart-area"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-
-                      <!-- 医疗机构管理 -->
-                      <div v-if="activeTab === 1" class="hospital-grid">
-                        <div v-for="hospital in sampleHospitals" :key="hospital.id" class="hospital-card">
-                          <div class="hospital-status" :class="hospital.status"></div>
-                          <div class="hospital-info">
-                            <h4>{{ hospital.name }}</h4>
-                            <p>床位使用率: {{ hospital.bedUsage }}%</p>
-                            <p>在线医生: {{ hospital.doctors }}人</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- 实时监控 -->
-                      <div v-if="activeTab === 2" class="monitoring-dashboard">
-                        <div class="metric-cards">
-                          <div v-for="metric in realTimeMetrics" :key="metric.label" class="metric-card">
-                            <div class="metric-value">{{ metric.value }}</div>
-                            <div class="metric-label">{{ metric.label }}</div>
-                            <div class="metric-trend" :class="metric.trend">
-                              {{ metric.change }}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+        <!-- Right Side - Scrollable Images -->
+        <div class="demo-right">
+          <div class="demo-images-container">
+            <div class="demo-image-item" v-for="(image, index) in demoImages" :key="index">
+              <div class="demo-image-wrapper">
+                <img :src="image.src" :alt="image.alt" class="demo-image">
+                <div class="image-overlay">
+                  <div class="overlay-content">
+                    <div class="image-title">{{ image.title }}</div>
+                    <div class="image-description">{{ image.description }}</div>
+                    <button class="view-button">
+                      <span>查看详情</span>
+                      <svg viewBox="0 0 24 24" class="arrow-icon">
+                        <path fill="currentColor" d="M5,13L9,17L7.6,18.42L1.18,12L7.6,5.58L9,7L5,11H21V13H5M21,6V8H11V6H21M21,16V18H11V16H21Z"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -255,14 +231,14 @@
             </div>
 
             <div class="about-description">
-              <p>我们是一家专注于健康大数据分析的科技公司，拥有多年的医疗信息化经验。通过整合医疗、产业、气象等多维度数据，为医疗机构、政府部门和研究机构提供专业的数据分析服务。</p>
+              <p>我们是一支专注于健康大数据分析的创新团队，致力于通过先进的数据科学技术推动医疗健康行业的数字化转型。团队成员共同为成都市健康大数据平台的建设贡献力量。</p>
 
               <div class="about-highlights">
                 <div class="highlight-item">
                   <div class="highlight-icon">🎯</div>
                   <div class="highlight-content">
-                    <h4>专业团队</h4>
-                    <p>汇聚医疗信息化、大数据分析、人工智能等领域的专业人才</p>
+                    <h4>核心团队</h4>
+                    <p>由靳皓、夏瑜麒、石京民、侯睿组成的专业团队，涵盖项目管理、技术架构、数据分析、前端开发等关键领域</p>
                   </div>
                 </div>
 
@@ -270,15 +246,15 @@
                   <div class="highlight-icon">🚀</div>
                   <div class="highlight-content">
                     <h4>技术创新</h4>
-                    <p>采用最新的大数据技术和机器学习算法，确保分析结果的准确性</p>
+                    <p>运用Vue.js、ECharts、机器学习等前沿技术，构建高效、直观的健康数据分析平台</p>
                   </div>
                 </div>
 
                 <div class="highlight-item">
                   <div class="highlight-icon">🤝</div>
                   <div class="highlight-content">
-                    <h4>服务承诺</h4>
-                    <p>提供7×24小时技术支持，确保系统稳定运行和数据安全</p>
+                    <h4>协作精神</h4>
+                    <p>团队成员紧密协作，发挥各自专业优势，共同打造优质的数据分析解决方案</p>
                   </div>
                 </div>
               </div>
@@ -324,6 +300,86 @@
         </div>
       </div>
     </section>
+
+    <!-- 光标探照灯区域 - 蓝色渐变背景版 -->
+    <section class="spotlight-section" ref="spotlightRef">
+      <div class="spotlight-content">
+        <!-- 第一屏：空白区域 -->
+        <div class="spotlight-screen screen-1">
+          <div class="container">
+            <!-- 纯净的光效体验，无文字内容 -->
+          </div>
+        </div>
+
+        <!-- 第二屏：空白区域 -->
+        <div class="spotlight-screen screen-2">
+          <div class="container">
+            <!-- 纯净的光效体验，无文字内容 -->
+          </div>
+        </div>
+
+        <!-- 第三屏：空白区域 -->
+        <div class="spotlight-screen screen-3">
+          <div class="container">
+            <!-- 纯净的光效体验，无文字内容 -->
+          </div>
+        </div>
+
+        <!-- 第四屏：空白区域 -->
+        <div class="spotlight-screen screen-4">
+          <div class="container">
+            <!-- 纯净的光效体验，无文字内容 -->
+          </div>
+        </div>
+
+        <!-- 第三屏：联系我们 -->
+        <div class="spotlight-screen screen-3">
+          <div class="contact-section">
+            <div class="contact-container">
+              <div class="contact-header">
+                <div class="contact-brand">
+                  <div class="contact-icon">📞</div>
+                  <h3 class="contact-title">联系我们</h3>
+                </div>
+                <p class="contact-subtitle">
+                  有任何问题或建议？我们随时为您服务
+                </p>
+              </div>
+
+              <div class="contact-content">
+                <div class="contact-column">
+                  <h4 class="column-title">联系方式</h4>
+                  <div class="contact-info">
+                    <p class="contact-info-item">📧 邮箱：2717120274@qq.com</p>
+                    <p class="contact-info-item">📱 电话：18711607090</p>
+                  </div>
+                </div>
+
+                <div class="contact-column">
+                  <h4 class="column-title">办公信息</h4>
+                  <div class="contact-info">
+                    <p class="contact-info-item">📍 地址：成都市郫都区华迪实训基地</p>
+                    <p class="contact-info-item">🕒 服务时间：周一至周五 9:00-18:00</p>
+                  </div>
+                </div>
+
+                <div class="contact-column">
+                  <h4 class="column-title">快速操作</h4>
+                  <div class="contact-actions">
+                    <button class="contact-btn primary" @click="goToRegister">
+                      立即注册
+                    </button>
+                    <button class="contact-btn secondary" @click="goToLogin">
+                      马上登录
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -338,17 +394,21 @@ import {
   Money
 } from '@element-plus/icons-vue'
 import Navbar from '../components/Navbar.vue'
+// import ChengduMapBackground from '../components/ChengduMapBackground.vue'
 import { gsap } from 'gsap'
 
 const router = useRouter()
 
 // 引用元素
+const homeContainer = ref()
 const heroRef = ref()
 const statsRef = ref()
 const featuresRef = ref()
 const demoRef = ref()
 const aboutRef = ref()
 const ctaRef = ref()
+const spotlightRef = ref()
+const mapBackground = ref()
 
 // GSAP时间线
 let heroTimeline = null
@@ -358,13 +418,13 @@ let demoTimeline = null
 let aboutTimeline = null
 let ctaTimeline = null
 
-// 可见性状态 - 直接显示所有内容
-const heroVisible = ref(true)
-const statsVisible = ref(true)
-const featuresVisible = ref(true)
-const demoVisible = ref(true)
-const aboutVisible = ref(true)
-const ctaVisible = ref(true)
+// 可见性状态 - 控制动画触发
+const heroVisible = ref(false)
+const statsVisible = ref(false)
+const featuresVisible = ref(false)
+const demoVisible = ref(false)
+const aboutVisible = ref(false)
+const ctaVisible = ref(false)
 
 // 交互状态
 const expandedFeature = ref(null)
@@ -378,12 +438,12 @@ const animatedStats = reactive({
   uptime: 0
 })
 
-// 统计数据配置
+// 统计数据配置 - 成都本地化
 const stats = [
-  { key: 'users', icon: '👥', label: '注册用户', suffix: 'M+' },
+  { key: 'users', icon: '👥', label: '蓉城用户', suffix: 'W+' },
   { key: 'hospitals', icon: '🏥', label: '合作医院', suffix: '+' },
   { key: 'data', icon: '📊', label: '数据处理量', suffix: 'TB' },
-  { key: 'uptime', icon: '⚡', label: '系统可用性', suffix: '%' }
+  { key: 'uptime', icon: '🐼', label: '熊猫可用性', suffix: '%' }
 ]
 
 // 功能特性
@@ -499,20 +559,49 @@ const demoTabs = [
   }
 ]
 
-// 团队成员数据
-const teamMembers = [
-  { name: '张博士', position: '技术总监', initial: '张' },
-  { name: '李教授', position: '数据科学家', initial: '李' },
-  { name: '王工程师', position: '架构师', initial: '王' },
-  { name: '陈分析师', position: '业务专家', initial: '陈' }
+// 产品演示图片数据
+const demoImages = [
+
+  {
+    src: '/images/demo/屏幕截图 2025-07-10 003028.png',
+    alt: '成都市各区县人口分布',
+    title: '人口分布地理可视化',
+    description: '成都市各区县人口密度分布图，直观展示人口分布情况和区域差异'
+  },
+  {
+    src: '/images/demo/屏幕截图 2025-07-10 003049.png',
+    alt: '医院等级分布趋势',
+    title: '医院等级趋势分析',
+    description: '2020-2023年医院等级分布变化趋势，包含三级、二级、一级医院数量统计'
+  },
+  {
+    src: '/images/demo/屏幕截图 2025-07-10 003224.png',
+    alt: '用户个人信息管理',
+    title: '用户信息管理系统',
+    description: '完善的用户个人信息管理界面，支持头像上传、信息编辑等功能'
+  },
+  {
+    src: '/images/demo/屏幕截图 2025-07-10 003315.png',
+    alt: '数据预测分析模型',
+    title: '智能数据预测分析',
+    description: '基于ARIMA、SARIMA、NeuralProphet、TBATS等模型的数据预测分析系统'
+  }
 ]
 
-// 示例医院数据
+// 团队成员数据
+const teamMembers = [
+  { name: '靳皓', position: '项目负责人', initial: '靳' },
+  { name: '夏瑜麒', position: '技术架构师', initial: '夏' },
+  { name: '石京民', position: '数据分析师', initial: '石' },
+  { name: '侯睿', position: '后端工程师', initial: '侯' }
+]
+
+// 成都医院数据
 const sampleHospitals = [
-  { id: 1, name: '市第一医院', bedUsage: 85, doctors: 24, status: 'normal' },
-  { id: 2, name: '中心医院', bedUsage: 92, doctors: 18, status: 'busy' },
-  { id: 3, name: '人民医院', bedUsage: 78, doctors: 31, status: 'normal' },
-  { id: 4, name: '儿童医院', bedUsage: 95, doctors: 15, status: 'critical' }
+  { id: 1, name: '华西医院', bedUsage: 85, doctors: 24, status: 'normal' },
+  { id: 2, name: '成都市第一人民医院', bedUsage: 92, doctors: 18, status: 'busy' },
+  { id: 3, name: '四川省人民医院', bedUsage: 78, doctors: 31, status: 'normal' },
+  { id: 4, name: '成都市妇女儿童中心医院', bedUsage: 95, doctors: 15, status: 'critical' }
 ]
 
 // 实时监控指标
@@ -523,29 +612,40 @@ const realTimeMetrics = [
   { label: '服务可用性', value: '99.9%', change: '+0.1%', trend: 'up' }
 ]
 
-// 粒子样式生成和动画
+// 优化的粒子样式生成和动画
 const getParticleStyle = (index) => {
   const style = {
     left: Math.random() * 100 + '%',
     top: Math.random() * 100 + '%',
   }
 
-  // 使用GSAP为每个粒子创建动画
+  // 使用GSAP为每个粒子创建优化的动画
   setTimeout(() => {
     const particles = document.querySelectorAll('.particle')
-    const particle = particles[index]
+    const particle = particles[index - 1] // Vue的v-for从1开始
     if (particle) {
+      // 添加成都特色的粒子内容
+      const chengduElements = ['🐼', '🏮', '🎋', '🌸', '☁️']
+      particle.textContent = chengduElements[index % chengduElements.length]
+
+      gsap.set(particle, {
+        fontSize: Math.random() * 10 + 15 + 'px',
+        opacity: 0.7
+      })
+
       gsap.to(particle, {
-        y: -100,
-        x: Math.random() * 200 - 100,
+        y: -150,
+        x: Math.random() * 150 - 75,
         rotation: 360,
-        duration: Math.random() * 10 + 10,
+        opacity: 0.3,
+        duration: Math.random() * 15 + 20,
         repeat: -1,
         ease: "none",
-        delay: Math.random() * 5
+        delay: Math.random() * 8,
+        yoyo: true
       })
     }
-  }, 500 + index * 100) // 增加延迟确保DOM已渲染
+  }, 800 + index * 150) // 增加延迟确保DOM已渲染
 
   return style
 }
@@ -621,27 +721,44 @@ const initGSAPAnimations = () => {
       stagger: 0.2,
       ease: "power3.out",
       onComplete: () => {
-        // 数字计数动画 - 延迟启动以增加戏剧效果
+        // 数字计数动画 - 成都本地化数据
         setTimeout(() => {
-          animateNumber(50000, 'users', 2.5)
-          animateNumber(120, 'hospitals', 2.0)
-          animateNumber(1000000, 'data', 3.0)
-          animateNumber(99.9, 'uptime', 2.2)
+          animateNumber(2100, 'users', 2.5)  // 2100万成都人口
+          animateNumber(168, 'hospitals', 2.0)  // 成都医院数量
+          animateNumber(850, 'data', 3.0)  // 数据处理量TB
+          animateNumber(99.8, 'uptime', 2.2)  // 熊猫可用性
         }, 300)
       }
     })
 
-  // Features Section 动画 - 直接设置为可见状态
-  featuresTimeline = gsap.timeline({ paused: false })
+  // Features Section 动画 - 水平划入效果
+  featuresTimeline = gsap.timeline({ paused: true })
+
+  // 只在动画播放时设置初始状态
   featuresTimeline
-    .set('.section-header', {
-      y: 0,
-      opacity: 1
+    .set('#features .section-header', { x: -100, opacity: 0 })
+    .set('.feature-card:nth-child(odd)', { x: -120, opacity: 0 })
+    .set('.feature-card:nth-child(even)', { x: 120, opacity: 0 })
+    .to('#features .section-header', {
+      x: 0,
+      opacity: 1,
+      duration: 1,
+      ease: "power3.out"
     })
-    .set('.feature-card', {
-      y: 0,
-      opacity: 1
-    })
+    .to('.feature-card:nth-child(odd)', {
+      x: 0,
+      opacity: 1,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: "power3.out"
+    }, "-=0.6")
+    .to('.feature-card:nth-child(even)', {
+      x: 0,
+      opacity: 1,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: "power3.out"
+    }, "-=1.0")
 
   // Demo Section 动画
   demoTimeline = gsap.timeline({ paused: true })
@@ -816,30 +933,141 @@ const setupHoverAnimations = () => {
   }, 100) // 延迟确保DOM已渲染
 }
 
-// 直接设置所有元素为可见状态
-const playAllAnimations = () => {
-  // 强制显示所有元素
-  gsap.set('.section-header', { opacity: 1, y: 0 })
-  gsap.set('.feature-card', { opacity: 1, y: 0 })
-  gsap.set('.stat-card', { opacity: 1, y: 0 })
-  gsap.set('.demo-content', { opacity: 1, y: 0 })
-  gsap.set('.about-content', { opacity: 1, y: 0 })
-  gsap.set('.cta-content', { opacity: 1, y: 0 })
+// 优化的滚动触发动画系统
+const setupScrollTriggerAnimations = () => {
+  // 使用 Intersection Observer 优化性能
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  }
 
-  console.log('🎬 所有元素已强制设置为可见状态')
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const target = entry.target
+
+        // 根据不同区域触发不同动画
+        if (target.classList.contains('stats-section')) {
+          playStatsAnimation()
+        } else if (target.classList.contains('features-section')) {
+          playFeaturesAnimation()
+        } else if (target.classList.contains('demo-section')) {
+          playDemoAnimation()
+        } else if (target.classList.contains('about-section')) {
+          playAboutAnimation()
+        } else if (target.classList.contains('cta-section')) {
+          playCTAAnimation()
+        }
+
+        // 动画播放后停止观察
+        observer.unobserve(target)
+      }
+    })
+  }, observerOptions)
+
+  // 观察所有需要动画的区域
+  const sections = document.querySelectorAll('.stats-section, .features-section, .demo-section, .about-section, .cta-section')
+  sections.forEach(section => observer.observe(section))
 }
 
-// 滚动监听（保留用于其他功能）
-const handleScroll = () => {
-  // 可以在这里添加其他滚动相关的逻辑
+// 各区域动画播放函数
+const playStatsAnimation = () => {
+  if (statsTimeline && !statsVisible.value) {
+    statsVisible.value = true
+
+    // 添加animate-in类来显示stats-grid
+    const statsGrid = document.querySelector('.stats-grid')
+    if (statsGrid) {
+      statsGrid.classList.add('animate-in')
+    }
+
+    statsTimeline.play()
+  }
+}
+
+const playFeaturesAnimation = () => {
+  if (featuresTimeline && !featuresVisible.value) {
+    featuresVisible.value = true
+    featuresTimeline.play()
+  }
+}
+
+// 确保统计数据在没有动画时也能显示
+const ensureStatsVisible = () => {
+  const statsSection = document.querySelector('.stats-section')
+  if (statsSection) {
+    const rect = statsSection.getBoundingClientRect()
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0
+
+    if (isInViewport && !statsVisible.value) {
+      console.log('🔧 强制显示统计数据区域')
+
+      // 添加animate-in类来显示stats-grid
+      const statsGrid = document.querySelector('.stats-grid')
+      if (statsGrid) {
+        statsGrid.classList.add('animate-in')
+      }
+
+      gsap.set('.stat-card', { y: 0, opacity: 1 })
+      statsVisible.value = true
+
+      // 启动数字动画
+      setTimeout(() => {
+        animateNumber(2100, 'users', 2.5)
+        animateNumber(168, 'hospitals', 2.0)
+        animateNumber(850, 'data', 3.0)
+        animateNumber(99.8, 'uptime', 2.2)
+      }, 300)
+    }
+  }
+}
+
+// 确保功能特性在没有动画时也能显示
+const ensureFeaturesVisible = () => {
+  // 如果动画没有播放且元素在视口中，直接显示
+  const featuresSection = document.querySelector('.features-section')
+  if (featuresSection) {
+    const rect = featuresSection.getBoundingClientRect()
+    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0
+
+    if (isInViewport && !featuresVisible.value) {
+      gsap.set('#features .section-header', { x: 0, opacity: 1 })
+      gsap.set('.feature-card', { x: 0, opacity: 1 })
+      featuresVisible.value = true
+    }
+  }
+}
+
+const playDemoAnimation = () => {
+  if (demoTimeline && !demoVisible.value) {
+    demoVisible.value = true
+    demoTimeline.play()
+  }
+}
+
+const playAboutAnimation = () => {
+  if (aboutTimeline && !aboutVisible.value) {
+    aboutVisible.value = true
+    aboutTimeline.play()
+  }
+}
+
+const playCTAAnimation = () => {
+  if (ctaTimeline && !ctaVisible.value) {
+    ctaVisible.value = true
+    ctaTimeline.play()
+  }
 }
 
 // 导航方法
 const goToLogin = () => router.push('/login')
 const goToRegister = () => router.push('/register')
+
 const scrollToDemo = () => {
   document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })
 }
+
+
 
 // 功能特性交互
 const toggleFeature = (index) => {
@@ -868,33 +1096,118 @@ const pageLoadAnimation = () => {
   }
 }
 
+// Demo滚动效果
+const setupDemoScrollEffect = () => {
+  const demoRight = document.querySelector('.demo-right')
+  const demoImages = document.querySelectorAll('.demo-image-item')
+
+  if (!demoRight || !demoImages.length) return
+
+  // 创建Intersection Observer来监听图片进入视口
+  const imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible')
+      }
+    })
+  }, {
+    root: demoRight,
+    rootMargin: '0px',
+    threshold: 0.3
+  })
+
+  // 观察所有图片
+  demoImages.forEach(image => {
+    imageObserver.observe(image)
+  })
+
+  console.log('📸 Demo滚动效果已启用')
+}
+
+// 光标探照灯效果
+let spotlightCleanup = null
+
+const initCursorSpotlight = () => {
+  if (!spotlightRef.value) return
+
+  // 设置CSS变量的初始值
+  document.documentElement.style.setProperty('--mouse-x', '50%')
+  document.documentElement.style.setProperty('--mouse-y', '50%')
+
+  // 监听鼠标移动事件
+  const handleMouseMove = (e) => {
+    // 获取鼠标相对于视口的坐标
+    const mouseX = e.clientX
+    const mouseY = e.clientY
+
+    // 更新CSS变量
+    document.documentElement.style.setProperty('--mouse-x', mouseX + 'px')
+    document.documentElement.style.setProperty('--mouse-y', mouseY + 'px')
+  }
+
+  // 添加事件监听器
+  window.addEventListener('mousemove', handleMouseMove)
+
+  // 返回清理函数
+  spotlightCleanup = () => {
+    window.removeEventListener('mousemove', handleMouseMove)
+  }
+
+  console.log('✨ 光标探照灯效果已启用')
+}
+
 // 生命周期
 onMounted(() => {
-  console.log('🚫 GSAP动画已禁用，所有内容直接显示')
+  console.log('🎬 启用简化显示系统')
 
-  // 确保所有元素可见
+  // 确保所有内容立即可见
   setTimeout(() => {
-    const elements = document.querySelectorAll('.section-header, .feature-card, .stat-card, .features-grid')
-    elements.forEach(el => {
-      el.style.opacity = '1'
-      el.style.transform = 'translateY(0)'
-      el.style.visibility = 'visible'
-    })
-    console.log('✅ 强制设置', elements.length, '个元素为可见状态')
-  }, 100)
+    // 强制显示所有主要内容
+    heroVisible.value = true
+    statsVisible.value = true
+    featuresVisible.value = true
+    demoVisible.value = true
+    aboutVisible.value = true
+    ctaVisible.value = true
 
-  window.addEventListener('scroll', handleScroll)
+    // 确保CSS类正确应用
+    const statsGrid = document.querySelector('.stats-grid')
+    if (statsGrid) {
+      statsGrid.classList.add('animate-in')
+    }
+
+    // 启动统计数据动画
+    setTimeout(() => {
+      animateNumber(2100, 'users', 2.5)
+      animateNumber(168, 'hospitals', 2.0)
+      animateNumber(850, 'data', 3.0)
+      animateNumber(99.8, 'uptime', 2.2)
+    }, 500)
+
+    // 初始化其他功能
+    setupHoverAnimations()
+    setupDemoScrollEffect()
+    initCursorSpotlight()
+
+    console.log('✅ 简化显示系统初始化完成')
+  }, 100)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-
   // 清理GSAP动画
   if (heroTimeline) heroTimeline.kill()
   if (statsTimeline) statsTimeline.kill()
   if (featuresTimeline) featuresTimeline.kill()
   if (demoTimeline) demoTimeline.kill()
+  if (aboutTimeline) aboutTimeline.kill()
   if (ctaTimeline) ctaTimeline.kill()
+
+  // 清理光标探照灯事件监听器
+  if (spotlightCleanup) {
+    spotlightCleanup()
+  }
+
+  console.log('🧹 GSAP动画和光标探照灯已清理')
 })
 </script>
 
@@ -918,8 +1231,8 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  padding-top: 80px; /* 为固定导航栏留出空间 */
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  padding-top: 60px; /* 为固定导航栏留出空间 */
+  background: #f8fafc;
   width: 100%;
 }
 
@@ -938,12 +1251,125 @@ onUnmounted(() => {
   height: 100%;
 }
 
+/* 成都地标元素 */
+.chengdu-landmarks {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.landmark {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.6;
+  animation: landmarkFloat 6s ease-in-out infinite;
+}
+
+.landmark-1 {
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.landmark-2 {
+  top: 60%;
+  left: 85%;
+  animation-delay: 1.5s;
+}
+
+.landmark-3 {
+  top: 80%;
+  left: 20%;
+  animation-delay: 3s;
+}
+
+.landmark-4 {
+  top: 30%;
+  left: 80%;
+  animation-delay: 4.5s;
+}
+
+@keyframes landmarkFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+    opacity: 0.8;
+  }
+}
+
+/* 成都地标元素 */
+.chengdu-landmarks {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.landmark {
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.6;
+  animation: landmarkFloat 8s ease-in-out infinite;
+}
+
+.landmark-1 {
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.landmark-2 {
+  top: 60%;
+  left: 80%;
+  animation-delay: 2s;
+}
+
+.landmark-3 {
+  top: 30%;
+  right: 20%;
+  animation-delay: 4s;
+}
+
+.landmark-4 {
+  bottom: 40%;
+  left: 10%;
+  animation-delay: 6s;
+}
+
+@keyframes landmarkFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-20px) rotate(5deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateY(-15px) rotate(2deg);
+    opacity: 0.9;
+  }
+}
+
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(99, 102, 241, 0.3);
-  border-radius: 50%;
+  width: auto;
+  height: auto;
+  font-size: 16px;
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+  transition: all 0.3s ease;
   animation: float-particle 15s infinite linear;
 }
 
@@ -971,7 +1397,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 80px;
+  gap: 60px;
   position: relative;
   z-index: 1;
   width: 100%;
@@ -980,14 +1406,16 @@ onUnmounted(() => {
 
 .hero-text {
   flex: 1;
-  min-width: 0;
+  min-width: 10;
+  opacity: 1; /* 确保默认可见 */
+  transform: translateY(0); /* 确保默认位置正确 */
 }
 
 /* GSAP will handle animations */
 
 .hero-title {
   font-size: 64px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
   margin: 0 0 24px 0;
   color: #1e293b;
@@ -1005,7 +1433,51 @@ onUnmounted(() => {
   font-size: 20px;
   line-height: 1.6;
   color: #64748b;
-  margin: 0 0 40px 0;
+  margin: 0 0 20px 0;
+}
+
+/* 成都元素样式 */
+.chengdu-elements {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.panda-icon {
+  font-size: 32px;
+  animation: pandaBounce 2s ease-in-out infinite;
+}
+
+.location-tag,
+.culture-tag {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  transition: all 0.3s ease;
+}
+
+.location-tag:hover,
+.culture-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+@keyframes pandaBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
 }
 
 .hero-buttons {
@@ -1068,6 +1540,8 @@ onUnmounted(() => {
 .hero-visual {
   flex: 1;
   min-width: 0;
+  opacity: 1; /* 确保默认可见 */
+  transform: translateX(0); /* 确保默认位置正确 */
 }
 
 /* GSAP will handle animations */
@@ -1156,22 +1630,21 @@ onUnmounted(() => {
 
 /* Stats Section */
 .stats-section {
-  padding: 120px 0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 60px 0;
+  background: #f8fafc;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 40px;
-  opacity: 0;
-  transform: translateY(50px);
-  transition: all 0.8s ease-out;
+  opacity: 1; /* 确保默认可见 */
+  transform: translateY(0); /* 确保默认位置正确 */
 }
 
 .stat-card {
   text-align: center;
-  padding: 40px 20px;
+  padding: 30px 20px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
@@ -1218,13 +1691,13 @@ onUnmounted(() => {
 
 /* Features Section */
 .features-section {
-  padding: 120px 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 60px 0;
+  background: #f8fafc;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 60px;
   opacity: 1 !important;
   transform: translateY(0) !important;
   transition: none !important;
@@ -1246,15 +1719,13 @@ onUnmounted(() => {
 }
 
 .features-grid {
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  opacity: 1 !important;
-  transform: translateY(0) !important;
+  gap: 30px;
 }
 
 .feature-card {
-  padding: 40px;
+  padding: 30px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
@@ -1264,8 +1735,7 @@ onUnmounted(() => {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  opacity: 1 !important; /* 强制显示 */
-  transform: translateY(0) !important; /* 强制显示 */
+  opacity: 1; /* 默认可见 */
 }
 
 .feature-card.expanded {
@@ -1503,160 +1973,60 @@ onUnmounted(() => {
 
 /* Demo Section */
 .demo-section {
-  padding: 120px 0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.demo-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
-  opacity: 0;
-  transform: translateY(50px);
-  transition: all 0.8s ease-out;
-}
-
-/* GSAP handles animations */
-
-.demo-text h2 {
-  font-size: 48px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 24px 0;
-}
-
-.demo-text p {
-  font-size: 20px;
-  line-height: 1.6;
-  color: #64748b;
-  margin: 0 0 32px 0;
-}
-
-.demo-features {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.demo-features li {
-  padding: 12px 0;
-  color: #475569;
-  font-size: 18px;
+  min-height: 100vh;
+  background: #f8fafc;
   position: relative;
-  padding-left: 32px;
-}
-
-.demo-features li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  color: #6366f1;
-  font-weight: bold;
-}
-
-.demo-visual {
-  position: relative;
-}
-
-.demo-chart {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 30px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-.chart-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 20px;
+.demo-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: none; /* 隐藏装饰性背景 */
 }
 
-.chart-content {
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(45deg, #6366f1, #a855f7);
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 200px;
   height: 200px;
-  position: relative;
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  top: 60%;
+  right: 20%;
+  animation-delay: 2s;
 }
 
-.line-chart {
-  width: 100%;
-  height: 100%;
+.orb-3 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+  bottom: 20%;
+  left: 60%;
+  animation-delay: 4s;
 }
 
-.chart-path {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: draw-line 3s ease-out forwards;
-}
-
-@keyframes draw-line {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Demo Tabs Styles */
-.demo-tabs {
-  margin-top: 60px;
-}
-
-.tab-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 60px;
-}
-
-.tab-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 32px;
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 160px;
-}
-
-.tab-button:hover {
-  border-color: #6366f1;
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
-}
-
-.tab-button.active {
-  border-color: #6366f1;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  color: white;
-  transform: translateY(-4px);
-  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
-}
-
-.tab-icon {
-  font-size: 32px;
-}
-
-.tab-button span {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.tab-content {
-  position: relative;
-}
-
-.tab-panel {
-  display: none;
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.tab-panel.active {
-  display: block;
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
 }
 
 @keyframes fadeInUp {
@@ -1670,275 +2040,272 @@ onUnmounted(() => {
   }
 }
 
-.demo-dashboard {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+.demo-container {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
-.dashboard-header {
+.demo-sticky-content {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 50%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
-  background: linear-gradient(135deg, #1e293b, #334155);
-  color: white;
 }
 
-.dashboard-title {
-  font-size: 20px;
-  font-weight: 600;
+.demo-left {
+  padding: 60px 50px;
+  max-width: 800px;
+  margin-left: 50px; 
+  padding-left: 150px
 }
 
-.dashboard-status {
-  display: flex;
+/* Demo Header */
+.demo-header {
+  margin-bottom: 40px;
+}
+
+.demo-badge {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.status-dot.active {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.dashboard-content {
-  padding: 32px;
-}
-
-.chart-container {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  color: white;
+  font-weight: 500;
   margin-bottom: 24px;
+  animation: fadeInUp 0.8s ease-out;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-.chart-header h4 {
-  color: #1e293b;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.chart-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.control-item {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
-  border: 1px solid #e2e8f0;
-}
-
-.control-item:hover {
-  border-color: #6366f1;
-}
-
-.control-item.active {
-  background: #6366f1;
-  color: white;
-  border-color: #6366f1;
-}
-
-.line-chart-wrapper {
-  height: 200px;
-}
-
-.animated-chart {
-  width: 100%;
-  height: 100%;
-}
-
-.chart-line {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: drawLine 3s ease-out forwards;
-}
-
-.chart-area {
-  opacity: 0;
-  animation: fadeInArea 2s ease-out 1s forwards;
-}
-
-@keyframes drawLine {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes fadeInArea {
-  to {
-    opacity: 1;
-  }
-}
-
-.hospital-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.hospital-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border-left: 4px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.hospital-card:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.hospital-card .hospital-status.normal {
-  border-left-color: #10b981;
-}
-
-.hospital-card .hospital-status.busy {
-  border-left-color: #f59e0b;
-}
-
-.hospital-card .hospital-status.critical {
-  border-left-color: #ef4444;
-}
-
-.hospital-status {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #10b981;
-  flex-shrink: 0;
-}
-
-.hospital-status.busy {
-  background: #f59e0b;
-}
-
-.hospital-status.critical {
-  background: #ef4444;
-  animation: pulse 2s infinite;
-}
-
-.hospital-info h4 {
-  color: #1e293b;
+.badge-icon {
   font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
 }
 
-.hospital-info p {
-  color: #64748b;
-  font-size: 14px;
-  margin: 4px 0;
-}
-
-.monitoring-dashboard .metric-cards {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.metric-card {
-  text-align: center;
-  padding: 24px;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.metric-value {
-  font-size: 32px;
+.demo-title {
+  font-size: 48px;
   font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
+  background: linear-gradient(135deg, #1e293b 0%, #6366f1 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 24px 0;
+  line-height: 1.2;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
-.metric-label {
+.demo-subtitle {
+  font-size: 18px;
   color: #64748b;
-  font-size: 14px;
-  margin-bottom: 8px;
+  margin: 0;
+  line-height: 1.6;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
-.metric-trend {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 12px;
-  display: inline-block;
+/* Features Description */
+.demo-description {
+  margin-bottom: 40px;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-.metric-trend.up {
-  background: #dcfce7;
-  color: #16a34a;
+.description-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #475569;
+  margin-bottom: 18px;
+  text-align: justify;
+  letter-spacing: 0.5px;
 }
 
-.metric-trend.down {
-  background: #fef2f2;
-  color: #dc2626;
+
+
+/* Demo Actions */
+.demo-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .demo-button {
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  color: white;
-  border: none;
-  padding: 14px 28px;
-  border-radius: 12px;
+  padding: 16px 32px;
+  border-radius: 16px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   transition: all 0.3s ease;
-  margin-top: 24px;
+  border: none;
+  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-button.primary {
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  color: white;
+}
+
+.demo-button.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .demo-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
 }
+
+.button-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.demo-button:hover .button-glow {
+  opacity: 1;
+}
+
+.button-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Right Side - Images */
+.demo-right {
+  width: 50%;
+  overflow-y: auto;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.demo-images-container {
+  padding: 80px 60px;
+}
+
+.demo-image-item {
+  margin-bottom: 60px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s ease-out;
+}
+
+.demo-image-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.demo-image-wrapper {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s ease;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.demo-image-wrapper:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
+}
+
+.demo-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+  border-radius: 24px;
+}
+
+.image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  color: white;
+  padding: 40px 30px 30px;
+  transform: translateY(100%);
+  transition: transform 0.4s ease;
+}
+
+.demo-image-wrapper:hover .image-overlay {
+  transform: translateY(0);
+}
+
+.overlay-content {
+  position: relative;
+  z-index: 2;
+}
+
+.image-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.image-description {
+  font-size: 16px;
+  line-height: 1.5;
+  opacity: 0.9;
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.view-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+}
+
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+
 
 /* About Section */
 .about-section {
-  padding: 120px 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 60px 0;
+  background: #f8fafc;
 }
 
 .about-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: 60px;
   align-items: flex-start;
 }
 
@@ -1950,7 +2317,7 @@ onUnmounted(() => {
   font-size: 18px;
   line-height: 1.8;
   color: #64748b;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .about-highlights {
@@ -1985,7 +2352,7 @@ onUnmounted(() => {
 .team-showcase {
   background: white;
   border-radius: 20px;
-  padding: 40px;
+  padding: 30px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -1993,7 +2360,7 @@ onUnmounted(() => {
   color: #1e293b;
   font-size: 24px;
   font-weight: 600;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   text-align: center;
 }
 
@@ -2050,8 +2417,8 @@ onUnmounted(() => {
 
 /* CTA Section */
 .cta-section {
-  padding: 120px 0;
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  padding: 80px 0;
+  background: #f8fafc;
 }
 
 .cta-content {
@@ -2107,9 +2474,51 @@ onUnmounted(() => {
     min-height: 500px;
   }
 
-  .demo-content {
-    grid-template-columns: 1fr;
-    gap: 60px;
+  .demo-container {
+    flex-direction: column;
+  }
+
+  .demo-sticky-content {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .demo-left {
+    padding: 50px 30px;
+  }
+
+  .demo-title {
+    font-size: 36px;
+  }
+
+  .demo-subtitle {
+    font-size: 16px;
+  }
+
+  .feature-card-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .feature-icon-wrapper {
+    align-self: center;
+    margin-bottom: 16px;
+  }
+
+  .demo-right {
+    width: 100%;
+    height: auto;
+    overflow-y: visible;
+    background: transparent;
+  }
+
+  .demo-images-container {
+    padding: 40px;
+  }
+
+  .demo-image {
+    height: 300px;
   }
 }
 
@@ -2149,8 +2558,83 @@ onUnmounted(() => {
     font-size: 36px;
   }
 
-  .demo-text h2 {
-    font-size: 36px;
+  .demo-title {
+    font-size: 28px;
+  }
+
+  .demo-subtitle {
+    font-size: 14px;
+  }
+
+  .demo-left {
+    padding: 30px 20px;
+  }
+
+  .demo-features-list {
+    gap: 20px;
+  }
+
+  .feature-card-inner {
+    padding: 20px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .feature-icon-wrapper {
+    align-self: center;
+    margin-bottom: 16px;
+  }
+
+  .feature-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .icon-glow {
+    width: 50px;
+    height: 50px;
+  }
+
+  .feature-title {
+    font-size: 18px;
+  }
+
+  .feature-description {
+    font-size: 13px;
+  }
+
+  .feature-points li {
+    font-size: 11px;
+  }
+
+  .demo-actions {
+    flex-direction: column;
+  }
+
+  .demo-button {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+
+  .demo-images-container {
+    padding: 20px;
+  }
+
+  .demo-image {
+    height: 250px;
+  }
+
+  .image-overlay {
+    padding: 20px 20px 20px;
+  }
+
+  .image-title {
+    font-size: 18px;
+  }
+
+  .image-description {
+    font-size: 14px;
   }
 
   .cta-content h2 {
@@ -2160,6 +2644,817 @@ onUnmounted(() => {
   .cta-buttons {
     flex-direction: column;
     align-items: center;
+  }
+}
+
+/* 光标探照灯效果 - CSS变量定义 */
+:root {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
+/* 光标探照灯区域 - 蓝色渐变背景版 */
+.spotlight-section {
+  position: relative;
+  min-height: 300vh; /* 缩短到3倍视口高度 */
+  overflow: hidden;
+
+  /* 主题色到黑色的渐变背景 */
+  background: linear-gradient(
+    to bottom,
+    #f8fafc 0%,    /* 顶部主题浅色 */
+    #e2e8f0 20%,   /* 主题中浅色 */
+    #cbd5e1 35%,   /* 主题中色 */
+    #94a3b8 50%,   /* 主题深色 */
+    #64748b 65%,   /* 深灰色 */
+    #475569 80%,   /* 更深灰色 */
+    #334155 90%,   /* 深灰蓝色 */
+    #1e293b 95%,   /* 非常深的灰蓝色 */
+    #000000 100%   /* 纯黑色 */
+  );
+}
+
+/* 上层光效 (Effect Layer) - 动态跟随鼠标的径向渐变 */
+.spotlight-section::before {
+  content: '';
+  position: fixed; /* 改为fixed，让光效始终跟随鼠标 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+
+  /* 关键：径向渐变，中心点由CSS变量控制 */
+  background: radial-gradient(
+    circle 400px at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.25) 0%,     /* 使用白色光效与蓝色背景形成对比 */
+    rgba(224, 242, 254, 0.15) 40%,    /* 浅蓝色光晕 */
+    rgba(224, 242, 254, 0.05) 70%,    /* 更淡的边缘 */
+    transparent 80%                    /* 完全透明 */
+  );
+
+  /* ✨ 关键的融合模式 - 让光效自然融合而不是覆盖 ✨ */
+  mix-blend-mode: soft-light;
+  pointer-events: none; /* 确保不阻挡鼠标事件 */
+}
+
+/* 第二层核心光效 - 更亮的中心区域 */
+.spotlight-section::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+
+  /* 更小更亮的核心光效 - 使用蓝白色调 */
+  background: radial-gradient(
+    circle 150px at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.3) 0%,      /* 明亮的白色核心 */
+    rgba(129, 212, 250, 0.15) 50%,    /* 中等蓝色中间层 */
+    transparent 80%                    /* 柔和边缘 */
+  );
+
+  /* 使用screen模式增强亮度效果 */
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* 删除了旧的 .spotlight-background 样式，现在直接在 .spotlight-section 上实现效果 */
+
+.spotlight-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+}
+
+/* 每个屏幕的基础样式 */
+.spotlight-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  position: relative;
+}
+
+/* 第一屏 - 主标题 */
+.screen-1 {
+  padding-top: 120px;
+}
+
+/* 滚动提示 */
+.scroll-hint {
+  margin-top: 60px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+}
+
+.scroll-arrow {
+  font-size: 24px;
+  margin-top: 10px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* 移除了不需要的文字样式，保持纯净的光效体验 */
+
+/* 移除了功能特性相关样式 */
+
+/* 移除了数据价值相关样式 */
+
+/* 愿景内容 */
+.vision-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-top: 60px;
+}
+
+.vision-text h4 {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.vision-text p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.vision-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.vision-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.vision-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+}
+
+.vision-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+/* 最终行动区域 */
+.final-message {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin: 40px 0 60px;
+  line-height: 1.6;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.final-actions {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.spotlight-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 36px;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  min-width: 180px;
+  justify-content: center;
+}
+
+.spotlight-btn.primary {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1f2937;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+}
+
+.spotlight-btn.primary:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(251, 191, 36, 0.6);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.spotlight-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.spotlight-btn.secondary:hover {
+  transform: translateY(-5px) scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 50px rgba(255, 255, 255, 0.2);
+}
+
+.btn-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+/* 联系我们区域 - 无卡片样式 */
+.contact-section {
+  width: 100%;
+  padding: 80px 0 60px;
+  position: relative;
+}
+
+.contact-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.contact-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.contact-icon {
+  font-size: 32px;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+.contact-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+.contact-subtitle {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+  align-items: start;
+}
+
+.contact-column {
+  text-align: center;
+}
+
+.column-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 24px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.contact-info {
+  margin-bottom: 24px;
+}
+
+.contact-info-item {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+  line-height: 1.5;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.contact-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.contact-btn {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.contact-btn.primary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e293b;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+.contact-btn.primary:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.3);
+  background: white;
+}
+
+.contact-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.contact-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* 旧的联系我们样式已删除 */
+
+.contact-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.contact-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.contact-icon {
+  font-size: 36px;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+}
+
+.contact-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+}
+
+.contact-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 60px;
+  align-items: start;
+}
+
+.contact-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.column-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 20px 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.contact-item:hover {
+  transform: translateX(8px);
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-item-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  border-radius: 10px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-item-content {
+  flex: 1;
+}
+
+.contact-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.contact-value {
+  font-size: 16px;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.contact-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 增加图标和文字间距 */
+  padding: 16px 32px; /* 增加按钮大小 */
+  border: none;
+  border-radius: 50px;
+  font-size: 16px; /* 增加字体大小 */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  min-width: 160px; /* 增加最小宽度 */
+  justify-content: center;
+}
+
+.contact-btn.primary {
+  background: linear-gradient(135deg, #ffffff, #e0f2fe);
+  color: #0277bd;
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+.contact-btn.primary:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+}
+
+.contact-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.contact-btn.secondary:hover {
+  transform: translateY(-3px) scale(1.05);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+}
+
+/* 快速入口 */
+
+.quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.quick-btn:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3));
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+.quick-icon {
+  font-size: 16px;
+}
+
+/* 通用标题样式 */
+.section-title {
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #ffffff, #81d4fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(129, 212, 250, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .spotlight-section {
+    min-height: 250vh;
+  }
+
+  .spotlight-title {
+    font-size: 36px;
+  }
+
+  .section-title {
+    font-size: 28px;
+  }
+
+  .spotlight-subtitle {
+    font-size: 18px;
+    margin-bottom: 40px;
+  }
+
+  .spotlight-features {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .feature-item {
+    padding: 20px;
+  }
+
+  .feature-icon {
+    font-size: 32px;
+  }
+
+  .value-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .value-number {
+    font-size: 36px;
+  }
+
+  .vision-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .vision-features {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-container {
+    padding: 0 20px;
+  }
+
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .contact-title {
+    font-size: 36px;
+  }
+
+  .contact-subtitle {
+    font-size: 18px;
+  }
+
+  .contact-container {
+    padding: 0 20px;
+  }
+
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .contact-header {
+    margin-bottom: 40px;
+  }
+
+  .contact-title {
+    font-size: 24px;
+  }
+
+  .contact-actions {
+    flex-direction: column;
+  }
+
+  .quick-access-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .quick-btn {
+    width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .spotlight-section {
+    min-height: 200vh;
+  }
+
+  .spotlight-screen {
+    padding: 60px 0;
+  }
+
+  .spotlight-title {
+    font-size: 28px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .spotlight-subtitle {
+    font-size: 16px;
+  }
+
+  .feature-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .feature-content h4 {
+    font-size: 18px;
+  }
+
+  .feature-content p {
+    font-size: 13px;
+  }
+
+  .value-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .value-item {
+    padding: 30px 15px;
+  }
+
+  .value-number {
+    font-size: 32px;
+  }
+
+  .vision-text h4 {
+    font-size: 22px;
+  }
+
+  .vision-text p {
+    font-size: 14px;
+  }
+
+  .spotlight-btn {
+    padding: 15px 30px;
+    font-size: 14px;
+    min-width: 160px;
+  }
+
+  .contact-container {
+    padding: 0 16px;
+  }
+
+  .contact-title {
+    font-size: 28px;
+  }
+
+  .contact-subtitle {
+    font-size: 16px;
+  }
+
+  .contact-info-item {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .contact-btn {
+    padding: 14px 28px;
+    font-size: 14px;
+    min-width: 140px;
+  }
+
+  .contact-content {
+    gap: 30px;
+  }
+
+  .contact-icon {
+    font-size: 28px;
+  }
+
+  .contact-title {
+    font-size: 20px;
+  }
+
+  .contact-subtitle {
+    font-size: 14px;
+  }
+
+  .contact-item {
+    padding: 15px;
+  }
+
+  .contact-item-icon {
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .contact-value {
+    font-size: 14px;
+  }
+
+  .contact-btn {
+    padding: 12px 24px;
+    font-size: 13px;
+    min-width: 120px;
+  }
+
+  .quick-access-title {
+    font-size: 18px;
+  }
+
+  .quick-btn {
+    padding: 16px;
+    min-width: 80px;
+  }
+
+  .quick-icon {
+    font-size: 20px;
   }
 }
 </style>

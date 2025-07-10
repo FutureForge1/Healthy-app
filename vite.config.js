@@ -15,8 +15,31 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
-      vueDevTools(),
+      // 生产环境不使用开发工具
+      ...(mode !== 'production' ? [vueDevTools()] : []),
     ],
+    // 生产环境构建配置
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false, // 生产环境不生成sourcemap
+      minify: 'terser', // 使用terser压缩
+      rollupOptions: {
+        output: {
+          // 分包策略
+          manualChunks: {
+            'element-plus': ['element-plus'],
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+            'chart-vendor': ['echarts'],
+            'map-vendor': ['mapbox-gl', '@turf/turf'],
+            'utils': ['axios', 'gsap']
+          }
+        }
+      },
+      // 构建时的资源处理
+      assetsInlineLimit: 4096, // 小于4kb的资源内联
+      chunkSizeWarningLimit: 1000 // chunk大小警告阈值
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url))

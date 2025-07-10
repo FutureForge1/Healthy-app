@@ -370,9 +370,9 @@ export const statisticsApi = {
   getServiceStats, // 兼容旧接口
 
   // 费用统计 - 新接口
-  getOutpatientCostStats,
-  getInpatientCostStats,
-  getCostStructureComparison,
+  getOutpatientCostStats: fetchOutpatientCostStatistics,
+  getInpatientCostStats: fetchInpatientCostStatistics,
+  getCostStructureComparison: fetchCostStructureComparison,
   getCostStats, // 兼容旧接口
 
   // 趋势分析

@@ -216,11 +216,23 @@
                   size="large"
                   style="width: 100%"
                 >
-                  <el-option label="系统管理员" value="ADMIN" />
-                  <el-option label="数据分析师" value="ANALYST" />
-                  <el-option label="访客用户" value="VISITOR" />
+                  <el-option
+                    v-for="role in availableRoles"
+                    :key="role.value"
+                    :label="role.label"
+                    :value="role.value"
+                  >
+                    <div style="display: flex; flex-direction: column;">
+                      <span>{{ role.label }}</span>
+                      <span style="font-size: 12px; color: #999; margin-top: 2px;">{{ role.description }}</span>
+                    </div>
+                  </el-option>
                 </el-select>
                 <div v-if="errors.role" class="error-text">{{ errors.role }}</div>
+                <div class="role-note">
+                  <el-icon><InfoFilled /></el-icon>
+                  <span>注意：管理员账号不支持注册，请联系系统管理员获取</span>
+                </div>
               </div>
 
               <div class="form-actions">
@@ -401,10 +413,12 @@ import {
   Key,
   CircleCheck,
   Loading,
-  Warning
+  Warning,
+  InfoFilled
 } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { getCaptcha, sendEmailCode, verifyEmailCode as verifyEmailCodeAPI } from '../api/auth'
+import { REGISTERABLE_ROLES, ROLE_DISPLAY_NAMES } from '../utils/permission'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -426,6 +440,9 @@ const verifyingCaptcha = ref(false)
 
 // Cloudflare Turnstile配置
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAABizYCjBu4_tDqsB'
+
+// 可用角色列表
+const availableRoles = ref(REGISTERABLE_ROLES)
 
 // 注册表单数据
 const registerForm = reactive({
@@ -473,12 +490,7 @@ const errors = reactive({
 })
 // 获取角色名称
 const getRoleName = (roleCode) => {
-  const roleMap = {
-    'ADMIN': '系统管理员',
-    'ANALYST': '数据分析师',
-    'VISITOR': '访客用户'
-  }
-  return roleMap[roleCode] || roleCode
+  return ROLE_DISPLAY_NAMES[roleCode] || roleCode
 }
 
 // 初始化Turnstile
@@ -1374,6 +1386,19 @@ onUnmounted(() => {
   color: #e74c3c;
   font-size: 12px;
   margin-top: 4px;
+}
+
+.role-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #0369a1;
 }
 
 .form-actions {

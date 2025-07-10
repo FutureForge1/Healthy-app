@@ -42,12 +42,12 @@
       <el-scrollbar>
         <div class="menu-section">
           <div class="menu-group">
-            <!-- 仪表盘 -->
+            <!-- 仪表盘 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/dashboard') }"
               @click="navigateTo('/app/dashboard')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'AUDITOR', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><Odometer /></el-icon>
@@ -56,16 +56,12 @@
               <div class="menu-indicator" v-if="isActive('/app/dashboard')"></div>
             </div>
 
-            <!-- 已删除3D地图相关菜单项 -->
-
-
-
-            <!-- 人口信息统计分析 -->
+            <!-- 人口信息统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/population') }"
               @click="navigateTo('/app/statistics/population')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><DataAnalysis /></el-icon>
@@ -74,12 +70,12 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/population')"></div>
             </div>
 
-            <!-- 医疗卫生机构统计分析 -->
+            <!-- 医疗卫生机构统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/institution') }"
               @click="navigateTo('/app/statistics/institution')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><Setting /></el-icon>
@@ -88,12 +84,12 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/institution')"></div>
             </div>
 
-            <!-- 医疗卫生人员统计分析 -->
+            <!-- 医疗卫生人员统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/personnel') }"
               @click="navigateTo('/app/statistics/personnel')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><User /></el-icon>
@@ -102,12 +98,12 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/personnel')"></div>
             </div>
 
-            <!-- 医疗卫生床位统计分析 -->
+            <!-- 医疗卫生床位统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/bed') }"
               @click="navigateTo('/app/statistics/bed')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><Document /></el-icon>
@@ -116,12 +112,12 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/bed')"></div>
             </div>
 
-            <!-- 医疗服务统计分析 -->
+            <!-- 医疗服务统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/service') }"
               @click="navigateTo('/app/statistics/service')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><PieChart /></el-icon>
@@ -130,12 +126,12 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/service')"></div>
             </div>
 
-            <!-- 医疗费用统计分析 -->
+            <!-- 医疗费用统计分析 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/statistics/cost') }"
               @click="navigateTo('/app/statistics/cost')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><FolderOpened /></el-icon>
@@ -144,26 +140,26 @@
               <div class="menu-indicator" v-if="isActive('/app/statistics/cost')"></div>
             </div>
 
-            <!-- 预测分析 - 仅数据分析师可见 -->
+            <!-- 预测分析 - 管理员和数据分析师可见 -->
             <div
               class="menu-item prediction-menu"
               :class="{ 'active': isActive('/app/analytics/prediction') }"
               @click="navigateTo('/app/analytics/prediction')"
-              v-if="hasPermission(['ANALYST'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST'])"
             >
               <div class="menu-icon">
                 <el-icon><TrendCharts /></el-icon>
               </div>
-              <span class="menu-text" v-show="!isCollapsed">🔮 预测分析</span>
+              <span class="menu-text" v-show="!isCollapsed">预测分析</span>
               <div class="menu-indicator" v-if="isActive('/app/analytics/prediction')"></div>
             </div>
 
-            <!-- 3D可视化 -->
+            <!-- 3D可视化 - 所有角色都可以访问 -->
             <div
               class="menu-item"
               :class="{ 'active': isActive('/app/mapbox-walking') }"
               @click="navigateTo('/app/mapbox-walking')"
-              v-if="hasPermission(['ADMIN', 'ANALYST', 'RESEARCHER'])"
+              v-if="hasPermission(['ADMIN', 'ANALYST', 'VISITOR'])"
             >
               <div class="menu-icon">
                 <el-icon><View /></el-icon>
@@ -173,8 +169,26 @@
             </div>
           </div>
 
-          <!-- 日志审计 -->
-          <div class="menu-group" v-if="hasPermission(['ADMIN', 'AUDITOR'])">
+          <!-- 系统管理 - 仅管理员可见 -->
+          <div class="menu-group" v-if="hasPermission(['ADMIN'])">
+            <div class="group-title" v-show="!isCollapsed">系统管理</div>
+
+            <!-- 用户权限管理 -->
+            <div
+              class="menu-item"
+              :class="{ 'active': isActive('/app/admin/users') }"
+              @click="navigateTo('/app/admin/users')"
+            >
+              <div class="menu-icon">
+                <el-icon><User /></el-icon>
+              </div>
+              <span class="menu-text" v-show="!isCollapsed">用户权限管理</span>
+              <div class="menu-indicator" v-if="isActive('/app/admin/users')"></div>
+            </div>
+          </div>
+
+          <!-- 日志审计 - 仅管理员可见 -->
+          <div class="menu-group" v-if="hasPermission(['ADMIN'])">
             <div class="group-title" v-show="!isCollapsed">日志审计</div>
             
             <div 
@@ -338,11 +352,9 @@ const isActiveGroup = (prefix) => {
 
 const hasPermission = (roles) => {
   const userRole = userStore.userInfo?.role
-  console.log('检查权限:', { userRole, requiredRoles: roles, userInfo: userStore.userInfo })
 
-  // 临时：如果用户已登录，就允许访问所有菜单
-  if (userStore.isLoggedIn) {
-    return true
+  if (!userRole || !userStore.isLoggedIn) {
+    return false
   }
 
   return roles.includes(userRole)
@@ -352,9 +364,7 @@ const getRoleText = (role) => {
   const roleMap = {
     'ADMIN': '系统管理员',
     'ANALYST': '数据分析师',
-    'AUDITOR': '审计员',
-    'RESEARCHER': '研究员',
-    'VISITOR': '访客'
+    'VISITOR': '访客用户'
   }
   return roleMap[role] || '未知角色'
 }
@@ -366,11 +376,11 @@ const switchTheme = (theme) => {
 }
 
 const showHelp = () => {
-  console.log('显示帮助')
+  navigateTo('/app/help')
 }
 
 const showSettings = () => {
-  console.log('显示设置')
+  navigateTo('/app/settings')
 }
 
 // 初始化动画
@@ -451,7 +461,9 @@ onMounted(() => {
 
 <style scoped>
 .sidebar-container {
-  width: 350px;
+  width: 280px; /* 统一固定宽度 */
+  min-width: 280px; /* 防止内容挤压 */
+  max-width: 280px; /* 防止宽度变化 */
   height: 100vh;
   background: linear-gradient(180deg, #1e293b 0%, #334155 50%, #475569 100%);
   color: #ffffff;
@@ -461,10 +473,13 @@ onMounted(() => {
   box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; /* 防止被压缩 */
 }
 
 .sidebar-container.collapsed {
-  width: 100px;
+  width: 80px; /* 统一收起宽度 */
+  min-width: 80px;
+  max-width: 80px;
 }
 
 /* 侧边栏头部 */
@@ -643,6 +658,8 @@ onMounted(() => {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  min-width: 0; /* 允许内容收缩 */
+  box-sizing: border-box; /* 包含padding和border */
 }
 
 .menu-item:hover {
@@ -683,6 +700,9 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* 允许文本收缩 */
 }
 
 .menu-indicator {
@@ -882,8 +902,17 @@ onMounted(() => {
     top: 0;
     z-index: 1000;
     transform: translateX(-100%);
+    width: 280px; /* 移动端也保持固定宽度 */
+    min-width: 280px;
+    max-width: 280px;
   }
-  
+
+  .sidebar-container.collapsed {
+    width: 280px; /* 移动端不使用收起状态 */
+    min-width: 280px;
+    max-width: 280px;
+  }
+
   .sidebar-container.mobile-open {
     transform: translateX(0);
   }

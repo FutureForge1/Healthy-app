@@ -36,7 +36,141 @@ export const exportData = (params) => {
   return request({
     url: '/data/export',
     method: 'POST',
-    data: params
+    data: params,
+    timeout: 60000 // 导出可能需要较长时间
+  })
+}
+
+/**
+ * 文件下载
+ * @param {string} exportId 导出任务ID
+ * @returns {Promise}
+ */
+export const downloadFile = (exportId) => {
+  return request({
+    url: `/data/download/${exportId}`,
+    method: 'GET',
+    responseType: 'blob', // 重要：设置响应类型为blob用于文件下载
+    timeout: 60000
+  })
+}
+
+/**
+ * 获取导出任务状态
+ * @param {string} exportId 导出任务ID
+ * @returns {Promise}
+ */
+export const getExportStatus = (exportId) => {
+  return request({
+    url: `/data/export/status/${exportId}`,
+    method: 'GET'
+  })
+}
+
+/**
+ * 取消导出任务
+ * @param {string} exportId 导出任务ID
+ * @returns {Promise}
+ */
+export const cancelExport = (exportId) => {
+  return request({
+    url: `/data/export/cancel/${exportId}`,
+    method: 'POST'
+  })
+}
+
+/**
+ * 获取支持的数据类型
+ * @returns {Promise}
+ */
+export const getSupportedDataTypes = () => {
+  return request({
+    url: '/data/types',
+    method: 'GET'
+  })
+}
+
+/**
+ * 获取数据字段信息
+ * @param {string} dataType 数据类型
+ * @returns {Promise}
+ */
+export const getDataFields = (dataType) => {
+  return request({
+    url: `/data/fields/${dataType}`,
+    method: 'GET'
+  })
+}
+
+/**
+ * 验证导入文件
+ * @param {FormData} formData 包含文件的FormData对象
+ * @returns {Promise}
+ */
+export const validateImportFile = (formData) => {
+  return request({
+    url: '/data/import/validate',
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
+ * 获取导入模板
+ * @param {string} dataType 数据类型
+ * @param {string} format 文件格式
+ * @returns {Promise}
+ */
+export const downloadTemplate = (dataType, format) => {
+  return request({
+    url: `/data/template/${dataType}`,
+    method: 'GET',
+    params: { format },
+    responseType: 'blob'
+  })
+}
+
+/**
+ * 获取导入预览数据
+ * @param {FormData} formData 包含文件的FormData对象
+ * @returns {Promise}
+ */
+export const getImportPreview = (formData) => {
+  return request({
+    url: '/data/import/preview',
+    method: 'POST',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
+ * 重新执行导入
+ * @param {string} logId 日志ID
+ * @returns {Promise}
+ */
+export const retryImport = (logId) => {
+  return request({
+    url: `/data/import/retry/${logId}`,
+    method: 'POST'
+  })
+}
+
+/**
+ * 批量删除日志
+ * @param {Array} logIds 日志ID列表
+ * @returns {Promise}
+ */
+export const deleteImportExportLogs = (logIds) => {
+  return request({
+    url: '/data/import-export-logs/batch-delete',
+    method: 'DELETE',
+    data: { logIds }
   })
 }
 
@@ -214,17 +348,90 @@ export const getDataByTags = (params) => {
   })
 }
 
+// 数据导出相关常量
+export const EXPORT_FORMATS = {
+  EXCEL: 'excel',
+  CSV: 'csv',
+  JSON: 'json',
+  PDF: 'pdf'
+}
+
+export const DATA_TYPES = {
+  POPULATION: 'population',
+  HOSPITAL: 'hospital',
+  PERSONNEL: 'personnel',
+  BED: 'bed',
+  SERVICE: 'service',
+  COST: 'cost'
+}
+
+export const IMPORT_MODES = {
+  APPEND: 'append',
+  REPLACE: 'replace',
+  UPDATE: 'update'
+}
+
+export const OPERATION_STATUS = {
+  PROCESSING: 'processing',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled'
+}
+
+// 文件下载辅助函数
+export const downloadFileFromBlob = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+
+// 格式化文件大小
+export const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// 验证文件类型
+export const validateFileType = (file, allowedTypes) => {
+  const fileExtension = file.name.split('.').pop().toLowerCase()
+  return allowedTypes.includes(fileExtension)
+}
+
+// 验证文件大小
+export const validateFileSize = (file, maxSizeMB) => {
+  const maxSizeBytes = maxSizeMB * 1024 * 1024
+  return file.size <= maxSizeBytes
+}
+
 // 统一导出数据管理API
 export const dataApi = {
   // 数据导入导出
   importData,
   exportData,
+  downloadFile,
   getImportExportLogs,
-  
+  getExportStatus,
+  cancelExport,
+  getSupportedDataTypes,
+  getDataFields,
+  validateImportFile,
+  downloadTemplate,
+  getImportPreview,
+  retryImport,
+  deleteImportExportLogs,
+
   // 数据清洗
   checkDataQuality,
   cleanData,
-  
+
   // 数据标签管理
   getDataTags,
   createDataTag,
@@ -233,5 +440,11 @@ export const dataApi = {
   assignDataTags,
   removeDataTags,
   getDataTagsByDataId,
-  getDataByTags
+  getDataByTags,
+
+  // 辅助函数
+  downloadFileFromBlob,
+  formatFileSize,
+  validateFileType,
+  validateFileSize
 }

@@ -97,3 +97,33 @@ export const verifyEmailCode = (email, code) => {
     method: 'POST'
   })
 }
+
+/**
+ * 发送密码重置验证码
+ * @param {string} username 用户名
+ * @returns {Promise}
+ */
+export const sendPasswordResetCode = (username) => {
+  return request({
+    url: `/auth/reset-password?username=${username}`,
+    method: 'GET'
+  })
+}
+
+/**
+ * 验证密码重置并设置新密码
+ * @param {Object} data 重置密码数据
+ * @param {string} data.username 用户名
+ * @param {string} data.newPassword 新密码
+ * @param {string} data.verificationCode 验证码
+ * @returns {Promise}
+ */
+export const resetPasswordWithCode = (data) => {
+  return request({
+    url: '/auth/reset-password/verify',
+    method: 'POST',
+    data
+  })
+}
+
+

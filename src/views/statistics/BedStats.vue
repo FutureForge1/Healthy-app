@@ -292,6 +292,7 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import {
   Download,
   DataAnalysis,
@@ -309,6 +310,9 @@ import {
 import { PieChart, BarChart, LineChart } from '@/components/charts'
 import OverviewCard from '@/components/OverviewCard.vue'
 import { getBedCategoryStats, getBedTotalCount, getBedUtilizationAnalysis } from '@/api/bed'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -644,14 +648,35 @@ const handleCurrentChange = (page) => {
   loadData()
 }
 
-// 导出数据
-const exportData = () => {
-  ElMessage.success('导出功能开发中')
+// 导出数据 - 创建导出任务并跳转到导入导出页面
+const exportData = async () => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'bed',
+    exportFormat: 'excel',
+    filters: {
+      startYear: parseInt(selectedYear.value) - 2,
+      endYear: parseInt(selectedYear.value)
+    },
+    fields: ['year', 'hospitalName', 'bedType', 'totalBeds', 'occupiedBeds', 'utilizationRate'],
+    taskName: `床位统计数据_${selectedYear.value}`
+  }, router)
 }
 
-// 导出表格数据
-const exportTableData = () => {
-  ElMessage.success('导出表格数据功能开发中')
+// 导出表格数据 - 创建导出任务并跳转到导入导出页面
+const exportTableData = async () => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'bed',
+    exportFormat: 'excel',
+    filters: {
+      year: parseInt(filters.year),
+      bedType: filters.bedType,
+      hospitalLevel: filters.hospitalLevel
+    },
+    fields: ['hospitalName', 'bedType', 'totalBeds', 'occupiedBeds', 'utilizationRate', 'averageStay'],
+    taskName: `床位详细数据_${filters.year}`
+  }, router)
 }
 
 // 显示使用率分析

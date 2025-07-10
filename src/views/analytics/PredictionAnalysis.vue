@@ -934,9 +934,9 @@ const deletePrediction = async (id) => {
 
 // 生命周期
 onMounted(() => {
-  // 权限检查
-  if (!Permission.isAnalyst()) {
-    ElMessage.error('您没有权限访问预测分析功能，该功能仅限数据分析师使用')
+  // 权限检查 - 管理员和数据分析师都可以访问
+  if (!Permission.isAnalyst() && !Permission.isAdmin()) {
+    ElMessage.error('您没有权限访问预测分析功能，该功能仅限管理员和数据分析师使用')
     // 可以选择重定向到其他页面
     // router.push('/app/dashboard')
     return

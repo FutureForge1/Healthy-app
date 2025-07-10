@@ -359,6 +359,7 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import {
   Download,
   DataAnalysis,
@@ -382,6 +383,9 @@ import {
   getServiceQualityAnalysis,
   getBedUtilizationStats
 } from '@/api/service'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
@@ -956,14 +960,35 @@ const handleCurrentChange = (page) => {
   loadData()
 }
 
-// 导出数据
-const exportData = () => {
-  ElMessage.success('导出功能开发中')
+// 导出数据 - 创建导出任务并跳转到导入导出页面
+const exportData = async () => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'service',
+    exportFormat: 'excel',
+    filters: {
+      startYear: currentYear.value - 2,
+      endYear: currentYear.value
+    },
+    fields: ['year', 'hospitalName', 'serviceType', 'serviceVolume', 'serviceQuality', 'patientSatisfaction'],
+    taskName: `医疗服务统计数据_${currentYear.value}`
+  }, router)
 }
 
-// 导出表格数据
-const exportTableData = () => {
-  ElMessage.success('导出表格数据功能开发中')
+// 导出表格数据 - 创建导出任务并跳转到导入导出页面
+const exportTableData = async () => {
+  const { createExportTaskAndNavigate } = await import('@/utils/exportHelper')
+  await createExportTaskAndNavigate({
+    dataType: 'service',
+    exportFormat: 'excel',
+    filters: {
+      year: filters.year,
+      serviceType: filters.serviceType,
+      hospitalType: filters.hospitalType
+    },
+    fields: ['hospitalName', 'serviceType', 'serviceVolume', 'serviceQuality', 'patientSatisfaction', 'efficiency'],
+    taskName: `医疗服务详细数据_${filters.year}`
+  }, router)
 }
 
 // 显示质量分析
