@@ -103,15 +103,7 @@ function parseCSV(text) {
   min-height: 300px;
   position: relative;
 }
-.log-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  min-height: 300px;
-  position: relative;
-}
+
 .log-loading-text {
   font-size: 1.3em;
   color: #fe4252;
@@ -123,6 +115,7 @@ function parseCSV(text) {
   text-align: center;
   animation: fadeIn 1s;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px);}
   to { opacity: 1; transform: translateY(0);}

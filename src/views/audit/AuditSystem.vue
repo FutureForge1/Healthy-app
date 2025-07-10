@@ -301,7 +301,7 @@
     </div>
     <div v-if="showSpinner" class="spinner-mask">
       <LoadingSpinner />
-      <div style="text-align:center;color:#666;margin-top:16px;">正在跳转...</div>
+      <div style="text-align:center;color:#666;margin-top:16px;">正在跳转到系统监控...</div>
     </div>
   </div>
   <LogDialog v-model:visible="showLogDialog" />
